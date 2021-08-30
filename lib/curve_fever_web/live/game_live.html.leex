@@ -30,17 +30,15 @@
                 </div>
 
                 <div>
-                    <%= if @game.game_state != :waiting_to_start do %>
+                    <%= if @game.game_state != :running do %>
                         <h3>Players</h3>
                         <ul>
                             <%= for player <- @game.players do %>
-                                <%= if @player.id != player.id and player.isPlaying == true  do %>
-                                    <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li></div>
-                                <% end %>
+                                <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li></div>
                             <% end %>
                         </ul>
                     <%else %>
-                        <h3>Players Waiting in Room</h3>
+                        <h3>Players in Room</h3>
                         <ul>
                             <%= for player <- @game.players do %>
                                 <%= if @player.id != player.id  do %>

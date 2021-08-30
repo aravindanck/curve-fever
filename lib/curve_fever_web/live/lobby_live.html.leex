@@ -1,0 +1,13 @@
+<div id="lobby-container" class="container row">
+    <div class="column">
+        <h1>Curve Fever</h1>
+
+        <%= f = form_for :lobby_form, "#" , id: "lobby-form", phx_submit: "join-game" %>
+            <%= text_input f, :player_name, value: @player_name, placeholder: "Player Name" %>
+            <%= text_input f, :game_id, value: @game_id, placeholder: "Game ID" %>
+            <%= submit "Join" %>
+        </form>
+    </div>
+    <div class="column">
+    </div>
+</div>

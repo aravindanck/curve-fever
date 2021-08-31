@@ -7,6 +7,6 @@ steps:
   args: ['push', 'gcr.io/$PROJECT_ID/github.com/aravindanck/curve-fever']
   # Deploy container image to Cloud Run
 - name: 'gcr.io/cloud-builders/gcloud'
-  args: ['beta', 'run', 'deploy', '{REPO_NAME}', '--image', 'gcr.io/$PROJECT_ID/github.com/aravindanck/curve-fever', '--region', 'asia-south1', '--allow-unauthenticated']
+  args: ['beta', 'run', 'deploy', 'curve-fever', '--image', 'gcr.io/$PROJECT_ID/github.com/aravindanck/curve-fever', '--region', 'asia-south1', '--allow-unauthenticated']
 images:
 - gcr.io/$PROJECT_ID/github.com/aravindanck/curve-fever

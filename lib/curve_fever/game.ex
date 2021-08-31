@@ -9,7 +9,6 @@ defmodule CurveFever.Game do
 
   require Logger
 
-  # TODO: Diff between defstruct and @type
   defstruct id: nil,
             players: [],
             online_players: [],

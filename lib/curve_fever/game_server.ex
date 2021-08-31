@@ -9,7 +9,6 @@ defmodule CurveFever.GameServer do
 
   require Logger
 
-  # TODO: Handle broadcast and show players joined to all
   @spec add_player(String.t(), Player.t()) ::
           :ok | {:error, :game_not_found | :name_taken}
   def add_player(game_id, player) do

@@ -144,7 +144,15 @@ defmodule CurveFever.Game do
         Logger.info("Player failed to clear hit test", player: player.name)
         {:ok, game} = update_player(game, player)
 
-        {:ok, game, player}
+        alive_players = list_players(game) |> Enum.filter(fn player -> player.isAlive end)
+        Logger.info(alive_players_count: length(alive_players))
+        if length(alive_players) == 0 do
+          game = %{game | game_state: :completed}
+          Logger.info(game)
+          {:ok, game, player}
+        else
+          {:ok, game, player}
+        end
       else
         Logger.info(new_pos_index: new_pos_index)
         game = %{game | canvas: List.update_at(game.canvas, new_pos_index, fn _ -> canvas_value end)}
@@ -157,7 +165,7 @@ defmodule CurveFever.Game do
 
     else
       Logger.info("Player is either not playing or already lost!", player: player);
-      {:ok, game, player, nil}
+      {:ok, game, player}
     end
   end
 

@@ -72,7 +72,7 @@ Hooks.canvas = {
     console.log("Set canvas called in mount")
   },
   updated() {
-    console.log("Updated - 1");
+    console.log("Updated");
 
     const c = document.getElementById("game-canvas");
     const ctx = c.getContext("2d");
@@ -91,6 +91,16 @@ Hooks.canvas = {
     console.log("Drawn");
   }
 }
+
+Hooks.gamestate ={
+  mounted(){
+    console.log("Game state mounted")
+  },
+  updated() {
+    console.log("Game State Changed")
+    window.location.reload()
+  }
+} 
 // End of User defined JS
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")

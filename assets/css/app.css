@@ -3,6 +3,7 @@
 
 /* App styles */
 $bgcolor: #F5F5F5;
+$gray: #696969;
 
 body {
   background-color: $bgcolor;
@@ -19,7 +20,7 @@ body {
   max-width: 1160px;
   
   canvas {
-    border: 3px solid #696969;
+    border: 3px solid $gray;
   }
 
   .center-position {
@@ -28,6 +29,13 @@ body {
     left: 25%;
   }
 
+  button {
+    border: 1px solid $gray;
+    border-radius: 0;
+    background-color: beige;
+    color: $gray;
+    font-family: monospace;
+  }
 }
 
 /* LiveView specific classes for your customizations */

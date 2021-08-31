@@ -5,9 +5,9 @@
             <%= if @game.game_state == :waiting_to_start do %>
                 <button phx-click="start-game" class="center-position">Start</button>
             <% end %>
-
+            <div id="game-state" data-value="<%= @game.game_state %>" phx-change="update" phx-hook="gamestate"></div>
             <%= if @game.game_state != :waiting_to_start do %>
-                <canvas id="game-canvas" class="<%=@game.game_state%>"
+                <canvas id="game-canvas"
                         data-value="<%=Jason.encode!(@game.canvas) %>"
                         height="<%=@game.config.canvasHeight%>"
                         width="<%=@game.config.canvasWidth%>"
@@ -31,23 +31,26 @@
 
                 <div>
                     <%= if @game.game_state != :running do %>
-                        <h3>Players</h3>
+                        <h3>Players in Game Room</h3>
                         <ul>
                             <%= for player <- @game.players do %>
-                                <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li></div>
+                                <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li>
                             <% end %>
                         </ul>
                     <%else %>
-                        <h3>Players in Room</h3>
+                        <h3>Other Players</h3>
                         <ul>
                             <%= for player <- @game.players do %>
                                 <%= if @player.id != player.id  do %>
-                                    <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li></div>
+                                    <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li>
                                 <% end %>
                             <% end %>
                         </ul>
                     <% end %>
                 </div>
+                <%= if @game.game_state == :completed do %>
+                    <button phx-click="start-game">Restart</button>
+                <% end %>
             </div>
         </div>
     </div>

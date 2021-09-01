@@ -175,16 +175,6 @@ defmodule CurveFever.GameServer do
     end
   end
 
-  defp cast_by_name(game_id, command) do
-    case game_pid(game_id) do
-      game_pid when is_pid(game_pid) ->
-        GenServer.cast(game_pid, command)
-
-      nil ->
-        {:error, :game_not_found}
-    end
-  end
-
   defp broadcast_players_updated!(game_id, players) do
     broadcast!(game_id, :players_updated, players)
   end

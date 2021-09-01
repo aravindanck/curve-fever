@@ -19,15 +19,15 @@ import {LiveSocket} from "phoenix_live_view"
 
 const colorCodes = new Map()
 colorCodes["red"] = [255,0,0]
-colorCodes["yellow"] = [255,255,0]
-colorCodes["aqua"] = [0,255,255]
+colorCodes["deeppink"] = [255,20,147]
+colorCodes["orangered"] = [255,69,0]
 colorCodes["navy"] = [0,0,128]
 colorCodes["blue"] = [0,0,255]
 colorCodes["green"] = [0,128,0]
 colorCodes["lime"] = [0,255,0]
-colorCodes["olive"] = [128,128,0]
+colorCodes["black"] = [0,0,0]
 colorCodes["purple"] = [128,0,128]
-colorCodes["teal"] = [0,128,128]
+colorCodes["saddlebrown"] = [139,69,19]
 
 function setCanvas() {
   const c = document.getElementById("game-canvas");
@@ -35,7 +35,6 @@ function setCanvas() {
 
   let data_arr = JSON.parse(c.getAttribute("data-value"));
   var canvasPixels = ctx.getImageData(0, 0, c.getAttribute("width"), c.getAttribute("height"));
-  console.log("before", canvasPixels, canvasPixels.data);
 
   for (var i = 0; i < canvasPixels.data.length; i += 4) {
       
@@ -44,23 +43,20 @@ function setCanvas() {
     let data = data_arr[index]
 
     if (data != -1 && data != undefined) {
-      // console.log("data", data);
       let color = data[0];
-      console.log("Color ",  color);
       canvasPixels.data[i] = colorCodes[color][0];
       canvasPixels.data[i + 1] = colorCodes[color][1];     // green
       canvasPixels.data[i + 2] = colorCodes[color][2];     // blue
       canvasPixels.data[i + 3] = 255;
 
     } else {
-      canvasPixels.data[i]     = 245;     // red
-      canvasPixels.data[i + 1] = 245;     // green
-      canvasPixels.data[i + 2] = 245;     // blue
+      canvasPixels.data[i]     = 255;     // red
+      canvasPixels.data[i + 1] = 255;     // green
+      canvasPixels.data[i + 2] = 255;     // blue
       canvasPixels.data[i + 3] = 255;
     }
   }
 
-  console.log("after", canvasPixels);
   ctx.putImageData(canvasPixels, 0, 0);
 }
 
@@ -69,7 +65,6 @@ Hooks.canvas = {
   mounted() {
     console.log("Canvas mounted");
     setCanvas();
-    console.log("Set canvas called in mount")
   },
   updated() {
     console.log("Updated");
@@ -88,7 +83,6 @@ Hooks.canvas = {
       ctx.moveTo(diff_json['y1'], diff_json['x1']);
       ctx.lineTo(diff_json['y2'], diff_json['x2']);
       ctx.stroke();
-      console.log("Drawn");  
     });
   }
 }

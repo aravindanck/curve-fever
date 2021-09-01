@@ -1,4 +1,3 @@
-=======
 # CurveFever
 
 Simplified version of curvefever game using Elixir and Phoenix LiveView

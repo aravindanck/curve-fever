@@ -43,7 +43,7 @@ defmodule CurveFever.Player do
   @spec initialize_state(t(), GameConfig.t(), integer()) :: t()
   def initialize_state(player, config, index) do
 
-    color = %{0 => "red", 1 => "purple", 2 => "green", 3 => "navy", 4 => "blue", 5 => "teal", 6 => "teal", 7 => "olive", 8 => "lime", 9 => "yellow"}
+    color = %{0 => "red", 1 => "purple", 2 => "lime", 3 => "orangered", 4 => "blue", 5 => "saddlebrown", 6 => "black", 7 => "deeppink", 8 => "green", 9 => "navy"}
 
     initialized_player = player
                         |> Map.update!(:x, fn _ -> :rand.uniform(config.canvasHeight-1) end)

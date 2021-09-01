@@ -18,7 +18,7 @@ defmodule CurveFeverWeb.GameLive do
            {:ok, player} <- GameServer.get_player_by_id(game_id, player_id),
           #  {:ok, _} <- Presence.track(self(), game_id, player_id, %{}),
            :ok <- Phoenix.PubSub.subscribe(CurveFever.PubSub, game_id) do
-        assign(socket, game: game, player: player, canvas_diff: %{})
+        assign(socket, game: game, player: player, canvas_diff: [])
       else
         _ ->
           _params =
@@ -59,6 +59,7 @@ defmodule CurveFeverWeb.GameLive do
   end
 
   def handle_event("key_press", %{"key" => "ArrowRight"}, socket) do
+
     Logger.info("Arrow Right pressed")
     game_id = socket |> game_id()
     player_id = socket |> player_id()

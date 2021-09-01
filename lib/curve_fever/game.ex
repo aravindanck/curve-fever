@@ -103,7 +103,7 @@ defmodule CurveFever.Game do
     Logger.info(invoked_by: self(), player_name: player.name)
 
     # speed = game.config.pixelsPerSecond * (1000 / game.config.frameRate / 1000)
-    speed = 1
+    speed = 1.3
     deltaX = :math.cos(player.angle * :math.pi / 180) * speed
     deltaY = :math.sin(player.angle * :math.pi / 180) * speed
 

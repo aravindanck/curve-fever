@@ -2,7 +2,7 @@
 @import "./phoenix.css";
 
 /* App styles */
-$bgcolor: #F5F5F5;
+$bgcolor: white;
 $gray: #696969;
 
 body {
@@ -11,6 +11,14 @@ body {
 
   header {
     background-color: $bgcolor;
+  }
+
+  button {
+    border: 1px solid $gray;
+    border-radius: 0;
+    background-color: beige;
+    color: $gray;
+    font-family: monospace;
   }
 
 }
@@ -29,13 +37,6 @@ body {
     left: 25%;
   }
 
-  button {
-    border: 1px solid $gray;
-    border-radius: 0;
-    background-color: beige;
-    color: $gray;
-    font-family: monospace;
-  }
 }
 
 /* LiveView specific classes for your customizations */

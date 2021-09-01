@@ -6,10 +6,10 @@ defmodule CurveFever.GameConfig do
   defstruct canvasWidth: 800,
             canvasHeight: 700,
             lineWidth: 3,
-            speed: 1,
+            speed: 1.2,
             maximumChangeOfAngle: 7, # angle change on direction change key press
             initialDelay: 3000,
-            stepFrequency: 25
+            stepFrequency: 50
 
 
   @type t :: %__MODULE__{

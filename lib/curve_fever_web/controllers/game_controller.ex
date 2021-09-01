@@ -26,7 +26,6 @@ defmodule CurveFeverWeb.GameController do
   end
 
   def index(conn, %{"game_id" => game_id}) do
-    Logger.info("Index of Game Controller called")
     Logger.info(game_id: game_id)
     conn
     |> put_session(:game_id, game_id)

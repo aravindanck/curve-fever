@@ -77,18 +77,19 @@ Hooks.canvas = {
     const c = document.getElementById("game-canvas");
     const ctx = c.getContext("2d");
     
-    let diff_json = JSON.parse(document.getElementById("canvas-diff").getAttribute("data-value"));
-    console.log(ctx, "Diff JSON : ", diff_json);
-    console.log(diff_json['color'], diff_json['x1'], diff_json['y1'],diff_json['x2'], diff_json['y2'])
+    let diff_json_arr = JSON.parse(document.getElementById("canvas-diff")
+                            .getAttribute("data-value"));
 
-    ctx.strokeStyle = diff_json['color'];
-    ctx.fillStyle = diff_json['color'];
-    ctx.beginPath();
-    ctx.lineWidth = 1;
-    ctx.moveTo(diff_json['y1'], diff_json['x1']);
-    ctx.lineTo(diff_json['y2'], diff_json['x2']);
-    ctx.stroke();
-    console.log("Drawn");
+    diff_json_arr.forEach(diff_json => { 
+      ctx.strokeStyle = diff_json['color'];
+      ctx.fillStyle = diff_json['color'];
+      ctx.beginPath();
+      ctx.lineWidth = 1;
+      ctx.moveTo(diff_json['y1'], diff_json['x1']);
+      ctx.lineTo(diff_json['y2'], diff_json['x2']);
+      ctx.stroke();
+      console.log("Drawn");  
+    });
   }
 }
 

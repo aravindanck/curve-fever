@@ -1,6 +1,6 @@
 defmodule CurveFever.GameServer do
   @moduledoc """
-  Holds state for a game and exposes an interface to managing the game instance
+  Holds state for a game and exposes an interface to manage the game instance
   """
 
   use GenServer
@@ -33,7 +33,6 @@ defmodule CurveFever.GameServer do
   end
 
   def start_game(game_id, player) do
-    Logger.info(start_game_player: player)
     call_by_name(game_id, {:start_game, player})
   end
 
@@ -41,11 +40,6 @@ defmodule CurveFever.GameServer do
   {:ok, Player.t()} | {:error, :game_not_found | :player_not_found}
   def get_player_by_id(game_id, player_id) do
     call_by_name(game_id, {:get_player_by_id, player_id})
-  end
-
-  def update_canvas(game_id, player_id) do
-    Logger.info(update_canvas_player_id_input: player_id)
-    cast_by_name(game_id, {:update_canvas, player_id})
   end
 
   @spec get_game(String.t() | pid()) :: {:ok, Game.t()} | {:error, :game_not_found}
@@ -92,19 +86,16 @@ defmodule CurveFever.GameServer do
 
   @impl GenServer
   def handle_call(:get_game, _from, state) do
-    Logger.info(get_game: state)
     {:reply, {:ok, state.game}, state}
   end
 
   @impl GenServer
   def handle_call({:start_game, player}, _from, state) do
-    Logger.info(state)
     with {:ok, game} <- Game.start_game(state.game),
         {:ok, player} <- Game.get_player_by_id(game, player.id)
      do
-      Logger.info(player: player)
       broadcast_game_updated!(game.id, %{game: game, player: player})
-      # Process.send_after(self(), {:update_canvas, player.id}, 1000)
+      Process.send_after(self(), :update_canvas, 3000)
       Logger.info(start_game_send_pid: self())
       {:reply, {:ok, game, player}, %{game: game, player: player}}
     end
@@ -134,9 +125,6 @@ defmodule CurveFever.GameServer do
       if player.isAlive do
         {:ok, game, player} = Game.turn(state.game, player, -1)
         {:ok, game} = Game.update_player(game, player)
-        Logger.info(after_turn_player: player)
-        Logger.info(after_turn_game: game)
-        # broadcast_canvas_updated!(game.id, game, player)
         {:reply, {:ok, game, player}, %{game: game, player: player}}
       else
         {:reply, {:ok, state.game, player}, %{game: state.game, player: player}}
@@ -144,32 +132,26 @@ defmodule CurveFever.GameServer do
     end
   end
 
-  # STill necessary?
-  @impl GenServer
-  def handle_cast({:update_canvas, player_id}, state) do
-    Logger.info("Update Canvas handler - call")
-    Logger.info(update_canvas_cast_state: state)
-    Logger.info(receive_pid: self())
-    # canvas_update(player_id, state)
-    Process.send_after(self(), {:update_canvas, player_id}, 3000)
-    {:noreply, state}
-  end
-
   @impl true
-  def handle_info({:update_canvas, player_id}, state) do
-    Logger.info("Update Canvas handler - info")
-    canvas_update(player_id, state)
+  def handle_info(:update_canvas, state) do
+    canvas_update(state)
   end
 
-  defp canvas_update(player_id, state) do
-    with {:ok, player} <- Game.get_player_by_id(state.game, player_id),
-        {:ok, game, player} <- Game.move_forward(state.game, player) do
-      broadcast_canvas_updated!(game.id, game.canvas_diff)
-      if game.game_state == :running and player.isAlive do
-        Process.send_after(self(), {:update_canvas, player.id}, 25)
-      end
-      {:noreply, %{game: game, player: player}}
+  defp canvas_update(state) do
+
+    {game, canvas_diff} = state.game.players
+                          |> Enum.filter(fn player -> player.isAlive end)
+                          |> Enum.reduce({state.game, []}, fn (player, {game_acc, canvas_diff_acc}) ->
+                                        {:ok, game_acc, _player, diff} = Game.move_forward(game_acc, player)
+                                        {game_acc, [diff] ++ canvas_diff_acc}
+                                    end)
+
+    broadcast_canvas_updated!(game.id, canvas_diff)
+    if game.game_state == :running do
+      Process.send_after(self(), :update_canvas, 50)
     end
+
+    {:noreply, %{game: game}}
   end
 
   @spec broadcast!(String.t(), atom(), map()) :: :ok

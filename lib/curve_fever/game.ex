@@ -13,7 +13,6 @@ defmodule CurveFever.Game do
             players: [],
             online_players: [],
             canvas: [],
-            canvas_diff: %{},
             config: %GameConfig{},
             game_state: :waiting_to_start
 
@@ -96,76 +95,69 @@ defmodule CurveFever.Game do
       |> Map.put(:canvas, canvas)
       |> Map.put(:players, players)
 
-    Logger.info(updated_game: game)
     {:ok, game}
   end
 
-  @spec move_forward(any, atom | %{:isPlaying => boolean, optional(any) => any}) ::
-          {:ok, any, atom | %{:isPlaying => boolean, optional(any) => any}}
   def move_forward(game, player) do
     Logger.info("**********************************Move player forward**********************************")
-    if player.isPlaying and player.isAlive do
+    Logger.info(invoked_by: self(), player_name: player.name)
 
-      # speed = game.config.pixelsPerSecond * (1000 / game.config.frameRate / 1000)
-      speed = 1
-      deltaX = :math.cos(player.angle * :math.pi / 180) * speed
-      deltaY = :math.sin(player.angle * :math.pi / 180) * speed
+    # speed = game.config.pixelsPerSecond * (1000 / game.config.frameRate / 1000)
+    speed = 1
+    deltaX = :math.cos(player.angle * :math.pi / 180) * speed
+    deltaY = :math.sin(player.angle * :math.pi / 180) * speed
 
-      Logger.info(deltaX: deltaX, deltaY: deltaY)
-      current_pos_index = (trunc(player.x) * game.config.canvasWidth) + trunc(player.y)
+    Logger.info(deltaX: deltaX, deltaY: deltaY)
+    current_pos_index = (trunc(player.x) * game.config.canvasWidth) + trunc(player.y)
 
-      new_x = player.x + deltaX
-      new_y = player.y + deltaY
+    new_x = player.x + deltaX
+    new_y = player.y + deltaY
 
-      {_, x_decimal} = split_float(new_x);
-      {_, y_decimal} = split_float(new_y);
-      canvas_value = [player.color, x_decimal, y_decimal];
-      canvas_diff = %{color: player.color,
-              x1: player.x,
-              y1: player.y,
-              x2: new_x,
-              y2: new_y};
+    {_, x_decimal} = split_float(new_x);
+    {_, y_decimal} = split_float(new_y);
+    canvas_value = [player.color, x_decimal, y_decimal];
+    canvas_diff = %{color: player.color,
+            x1: player.x,
+            y1: player.y,
+            x2: new_x,
+            y2: new_y};
 
-      Logger.info(canvas_diff: canvas_diff)
+    Logger.info(canvas_diff: canvas_diff)
 
-      game = %{game | canvas_diff: canvas_diff}
+    res = clears_hit_test?(new_x, new_y, game.config.canvasWidth, game.config.canvasHeight)
+    Logger.info(x: player.x, y: player.y, new_pos_X: new_x, new_pos_y: new_y, clears_hit_test?: res)
+    player = Map.put(player, :x, new_x)
+    player = Map.put(player, :y, new_y)
 
-      res = clears_hit_test?(new_x, new_y, game.config.canvasWidth, game.config.canvasHeight)
-      Logger.info(x: player.x, y: player.y, new_pos_X: new_x, new_pos_y: new_y, clears_hit_test?: res)
-      player = Map.put(player, :x, new_x)
-      player = Map.put(player, :y, new_y)
+    new_pos_index = (trunc(new_x) * game.config.canvasWidth) + trunc(new_y)
 
-      new_pos_index = (trunc(new_x) * game.config.canvasWidth) + trunc(new_y)
+    if res == :false or (new_pos_index != current_pos_index and Enum.at(game.canvas, new_pos_index) != -1) do
+      player = Map.put(player, :isAlive, :false)
+      player = Map.put(player, :isActive, :false)
+      Logger.info("Player failed to clear hit test", player: player.name)
+      {:ok, game} = update_player(game, player)
 
-      if res == :false or (new_pos_index != current_pos_index and Enum.at(game.canvas, new_pos_index) != -1) do
-        player = Map.put(player, :isAlive, :false)
-        player = Map.put(player, :isActive, :false)
-        Logger.info("Player failed to clear hit test", player: player.name)
-        {:ok, game} = update_player(game, player)
+      alive_players = list_players(game)
+                      |> Enum.filter(fn player -> player.isPlaying and player.isAlive end)
+      Logger.info(alive_players_count: length(alive_players))
 
-        alive_players = list_players(game) |> Enum.filter(fn player -> player.isAlive end)
-        Logger.info(alive_players_count: length(alive_players))
-        if length(alive_players) == 0 do
-          game = %{game | game_state: :completed}
-          Logger.info(game)
-          {:ok, game, player}
-        else
-          {:ok, game, player}
-        end
+      if length(alive_players) == 0 do
+        game = %{game | game_state: :completed}
+        Logger.info(game)
+        {:ok, game, player, canvas_diff}
       else
-        Logger.info(new_pos_index: new_pos_index)
-        game = %{game | canvas: List.update_at(game.canvas, new_pos_index, fn _ -> canvas_value end)}
-
-        Logger.info(new_x: new_x, new_y: new_y, val: Enum.at(game.canvas, new_pos_index))
-        {:ok, game} = update_player(game, player)
-
-        {:ok, game, player}
+        {:ok, game, player, canvas_diff}
       end
-
     else
-      Logger.info("Player is either not playing or already lost!", player: player);
-      {:ok, game, player}
+      Logger.info(new_pos_index: new_pos_index)
+      game = %{game | canvas: List.update_at(game.canvas, new_pos_index, fn _ -> canvas_value end)}
+
+      Logger.info(new_x: new_x, new_y: new_y, val: Enum.at(game.canvas, new_pos_index))
+      {:ok, game} = update_player(game, player)
+
+      {:ok, game, player, canvas_diff}
     end
+
   end
 
   defp clears_hit_test?(x, y, canvasWidth, canvasHeight) do
@@ -178,20 +170,16 @@ defmodule CurveFever.Game do
 
   def turn(game, player, direction) do
 
-    Logger.info(angle_before: player.angle)
     angle = player.angle + (game.config.maximumChangeOfAngle * direction);
 
     angle = rem(angle, 360)
-    Logger.info(reminder_angle: angle)
 
     if angle < 0 do
       angle = angle + 360
-      Logger.info(angle_after_add360_since_negative: angle)
       player = Map.put(player, :angle, angle)
       {:ok, game, player}
     else
       player = Map.put(player, :angle, angle)
-      Logger.info(angle_after_positive_so_just_return: angle)
       {:ok, game, player}
     end
   end
@@ -223,14 +211,11 @@ defmodule CurveFever.Game do
   end
 
   defp initialize_players_state(players, config) do
-    Logger.info(before_initialization_players: players)
 
     initialized_players = players
     |> Enum.with_index()
     |> Enum.map(fn {player, index} -> Player.initialize_state(player, config, index) end)
 
-
-    Logger.info(after_initialization_players: initialized_players)
     initialized_players
   end
 

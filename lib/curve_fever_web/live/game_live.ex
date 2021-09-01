@@ -92,8 +92,6 @@ defmodule CurveFeverWeb.GameLive do
     Logger.info("Game Updated(:game_updated) broadcast caught")
     Logger.info(game_updated_socket: socket)
     Logger.info(game_started_signal_received_by: socket.assigns.player.name)
-    GameServer.update_canvas(game_id(socket), socket.assigns.player.id)
-    # Process.send_after(self(), {:update_canvas, socket.assigns.player.id}, 3000)
     {:noreply, assign(socket, game: state.game)}
   end
 

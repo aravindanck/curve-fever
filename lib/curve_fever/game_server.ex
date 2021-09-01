@@ -32,8 +32,8 @@ defmodule CurveFever.GameServer do
     call_by_name(game_id, {:turn_right, player_id})
   end
 
-  def start_game(game_id, player) do
-    call_by_name(game_id, {:start_game, player})
+  def start_game(game_id) do
+    call_by_name(game_id, :start_game)
   end
 
   @spec get_player_by_id(String.t(), String.t()) ::
@@ -90,14 +90,18 @@ defmodule CurveFever.GameServer do
   end
 
   @impl GenServer
-  def handle_call({:start_game, player}, _from, state) do
-    with {:ok, game} <- Game.start_game(state.game),
-        {:ok, player} <- Game.get_player_by_id(game, player.id)
-     do
-      broadcast_game_updated!(game.id, %{game: game, player: player})
-      Process.send_after(self(), :update_canvas, 3000)
-      Logger.info(start_game_send_pid: self())
-      {:reply, {:ok, game, player}, %{game: game, player: player}}
+  def handle_call(:start_game, _from, state) do
+    case Game.start_game(state.game) do
+      {:ok, game} ->
+        broadcast_game_updated!(game.id, %{game: game})
+
+        Process.send_after(self(), :update_canvas, game.config.initialDelay)
+
+        Logger.info(start_game_send_pid: self())
+        {:reply, {:ok, game}, %{game: game}}
+
+      {:error, :insufficient_players} = error ->
+        {:reply, error, state}
     end
   end
 
@@ -148,7 +152,10 @@ defmodule CurveFever.GameServer do
 
     broadcast_canvas_updated!(game.id, canvas_diff)
     if game.game_state == :running do
-      Process.send_after(self(), :update_canvas, 50)
+      Process.send_after(self(), :update_canvas, game.config.stepFrequency)
+    else
+      broadcast_game_ended!(game.id, List.first(Game.players_alive(game)))
+      {:noreply, %{game: game}}
     end
 
     {:noreply, %{game: game}}
@@ -187,6 +194,11 @@ defmodule CurveFever.GameServer do
   defp broadcast_canvas_updated!(game_id, canvas_diff) do
     Logger.info("Canvas updated broadcast")
     broadcast!(game_id, :canvas_updated, canvas_diff)
+  end
+
+  defp broadcast_game_ended!(game_id, winner) do
+    Logger.info("Game ended")
+    broadcast!(game_id, :game_ended, winner)
   end
 
   @spec via_tuple(String.t()) :: {:via, Registry, {CurveFever.GameRegistry, String.t()}}

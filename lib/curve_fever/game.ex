@@ -82,28 +82,31 @@ defmodule CurveFever.Game do
   @doc """
   Start game
   """
-  @spec start_game(t()) :: {:ok, t()}
+  @spec start_game(t()) :: {:ok, t()} | {:error, :insufficient_players}
   def start_game(game) do
     {:ok, config} = Map.fetch(game, :config)
 
-    canvas = initialize_canvas(config.canvasHeight, config.canvasWidth)
-    players = initialize_players_state(game.players, config)
+    if length(game.players) <= 1 do
+      {:error, :insufficient_players}
+    else
+      canvas = initialize_canvas(config.canvasHeight, config.canvasWidth)
+      players = initialize_players_state(game.players, config)
 
-    game =
-      game
-      |> Map.put(:game_state, :running)
-      |> Map.put(:canvas, canvas)
-      |> Map.put(:players, players)
+      game =
+        game
+        |> Map.put(:game_state, :running)
+        |> Map.put(:canvas, canvas)
+        |> Map.put(:players, players)
 
-    {:ok, game}
+      {:ok, game}
+    end
   end
 
   def move_forward(game, player) do
     Logger.info("**********************************Move player forward**********************************")
     Logger.info(invoked_by: self(), player_name: player.name)
 
-    # speed = game.config.pixelsPerSecond * (1000 / game.config.frameRate / 1000)
-    speed = 1.3
+    speed = game.config.speed
     deltaX = :math.cos(player.angle * :math.pi / 180) * speed
     deltaY = :math.sin(player.angle * :math.pi / 180) * speed
 
@@ -134,16 +137,12 @@ defmodule CurveFever.Game do
     if res == :false or (new_pos_index != current_pos_index and Enum.at(game.canvas, new_pos_index) != -1) do
       player = Map.put(player, :isAlive, :false)
       player = Map.put(player, :isActive, :false)
-      Logger.info("Player failed to clear hit test", player: player.name)
+      Logger.info("Player failed to clear hit test": player.name)
       {:ok, game} = update_player(game, player)
 
-      alive_players = list_players(game)
-                      |> Enum.filter(fn player -> player.isPlaying and player.isAlive end)
-      Logger.info(alive_players_count: length(alive_players))
-
-      if length(alive_players) == 0 do
+      if length(players_alive(game)) == 1  do
+        Logger.info("Game ends as the number of players alive is 1")
         game = %{game | game_state: :completed}
-        Logger.info(game)
         {:ok, game, player, canvas_diff}
       else
         {:ok, game, player, canvas_diff}
@@ -157,7 +156,11 @@ defmodule CurveFever.Game do
 
       {:ok, game, player, canvas_diff}
     end
+  end
 
+  def players_alive(game) do
+    list_players(game)
+        |> Enum.filter(fn player -> player.isPlaying and player.isAlive end)
   end
 
   defp clears_hit_test?(x, y, canvasWidth, canvasHeight) do

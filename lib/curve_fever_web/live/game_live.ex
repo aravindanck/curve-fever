@@ -39,8 +39,11 @@ defmodule CurveFeverWeb.GameLive do
   def handle_event("start-game", params, socket) do
     Logger.info("Start Game invoked", params)
 
-    with {:ok, game, _player} <- GameServer.start_game(game_id(socket), socket.assigns.player) do
-      assign(socket, game: game)
+    case GameServer.start_game(game_id(socket)) do
+       {:ok, game} ->
+          assign(socket, game: game)
+       {:error, :insufficient_players} ->
+          send(self(), :insufficient_players)
     end
 
     {:noreply, socket}
@@ -118,9 +121,23 @@ defmodule CurveFeverWeb.GameLive do
     {:noreply, assign(socket, game: game)}
   end
 
+  def handle_info(%{event: :game_ended, payload: winner}, socket) do
+
+    socket = socket
+      |> put_temporary_flash(:info, "Player #{winner.name} won!!!")
+
+    {:noreply, socket}
+  end
+
+  def handle_info(:insufficient_players, socket) do
+    socket = socket
+    |> put_temporary_flash(:error, "A game needs a minimum of two players")
+
+    {:noreply, socket}
+  end
+
   def handle_info(_params, socket) do
     %{game: game} = socket.assigns
-
 
     {:noreply, assign(socket, game: game)}
   end
@@ -140,5 +157,11 @@ defmodule CurveFeverWeb.GameLive do
   #   |> Presence.list()
   #   |> Enum.map(fn {_k, %{player: player}} -> player end)
   # end
+
+  defp put_temporary_flash(socket, level, message) do
+    :timer.send_after(:timer.seconds(3), {:clear_flash, level})
+
+    put_flash(socket, level, message)
+  end
 
 end

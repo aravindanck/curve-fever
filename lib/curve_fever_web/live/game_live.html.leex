@@ -3,7 +3,7 @@
     <div  class="row">
         <div class="column">
             <%= if @game.game_state == :waiting_to_start do %>
-                <button phx-click="start-game" class="center-position">Start</button>
+                <button phx-click="start-game" id="start-button">Start</button>
             <% end %>
             <div id="game-state" data-value="<%= @game.game_state %>" phx-change="update" phx-hook="gamestate"></div>
             <%= if @game.game_state != :waiting_to_start do %>

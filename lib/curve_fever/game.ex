@@ -106,7 +106,7 @@ defmodule CurveFever.Game do
     Logger.info("**********************************Move player forward**********************************")
     Logger.info(invoked_by: self(), for_player: player.name)
 
-    {updated_game, updated_player} = Enum.reduce_while(1..2, {game, player}, fn _i, {updated_game, updated_player} ->
+    {updated_game, updated_player} = Enum.reduce_while(1..game.config.pixelsPerIteration, {game, player}, fn _i, {updated_game, updated_player} ->
                                       {:ok, game, player, _diff} = move_step(updated_game, updated_player)
                                       if player.isAlive do
                                         {:cont, {game, player}}

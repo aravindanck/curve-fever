@@ -9,7 +9,8 @@ defmodule CurveFever.GameConfig do
             speed: 1,
             maximumChangeOfAngle: 2, # angle change on direction change key press
             initialDelay: 5000,
-            stepFrequency: 60
+            stepFrequency: 50,
+            pixelsPerIteration: 2
 
 
   @type t :: %__MODULE__{
@@ -19,7 +20,8 @@ defmodule CurveFever.GameConfig do
             speed: float(),
             maximumChangeOfAngle: pos_integer(),
             initialDelay: pos_integer(),
-            stepFrequency: pos_integer()
+            stepFrequency: pos_integer(),
+            pixelsPerIteration: pos_integer()
           }
 
   @spec new() :: t()

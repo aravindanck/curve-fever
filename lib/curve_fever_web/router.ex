@@ -19,9 +19,11 @@ defmodule CurveFeverWeb.Router do
   scope "/", CurveFeverWeb do
     pipe_through :browser
 
-    live "/", LobbyLive, :index
+    live "/", SigninLive, :index
     get("/join_game", GameController, :join)
     get("/game", GameController, :index)
+    get("/lobby", LobbyController, :join)
+    get("/join_lobby", LobbyController, :index)
   end
 
   # Other scopes may use custom stacks.

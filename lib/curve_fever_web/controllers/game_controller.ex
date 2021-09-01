@@ -6,7 +6,7 @@ defmodule CurveFeverWeb.GameController do
   def join(conn, params) do
     %{"game_id" => game_id, "player_id" => player_id} = params
 
-    game_path = Routes.game_path(conn, :index, game_id: game_id)
+    game_path = Routes.game_path(conn, :index, game_id: game_id, player_id: player_id)
 
     Logger.info(game_path: game_path)
 
@@ -25,10 +25,13 @@ defmodule CurveFeverWeb.GameController do
     |> redirect(to: lobby_path)
   end
 
-  def index(conn, %{"game_id" => game_id}) do
+  def index(conn, %{"game_id" => game_id,  "player_id" => player_id}) do
     Logger.info(game_id: game_id)
+    Logger.info(player_id: player_id)
+
     conn
     |> put_session(:game_id, game_id)
+    |> put_session(:player_id, player_id)
     |> Controller.live_render(CurveFeverWeb.GameLive)
   end
 end

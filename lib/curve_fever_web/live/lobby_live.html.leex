@@ -1,13 +1,19 @@
-<div id="lobby-container" class="container row">
+<div id="signin-container" class="container row">
     <div class="column">
         <h1>Curve Fever</h1>
 
-        <%= f = form_for :lobby_form, "#" , id: "lobby-form", phx_submit: "join-game" %>
-            <%= text_input f, :player_name, value: @player_name, placeholder: "Player Name" %>
-            <%= text_input f, :game_id, value: @game_id, placeholder: "Game ID" %>
-            <%= submit "Join" %>
-        </form>
+        <button phx-click="new_game" class="center-position">Enter a new Game</button>
+
     </div>
     <div class="column">
     </div>
+</div>
+
+<div id = "game-list">
+<h2>Alive Games</h2>
+<%= for game <- @games do %>
+<p><%= game %><p>
+<button phx-click="join-game" phx-value-column="<%= game %>">Join</button>
+<% end %>
+</div>
 </div>

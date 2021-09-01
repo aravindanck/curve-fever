@@ -42,6 +42,22 @@ defmodule CurveFever.GameServer do
     call_by_name(game_id, {:get_player_by_id, player_id})
   end
 
+
+  @spec list_rooms :: list
+  def list_rooms do
+    games = Registry.select(CurveFever.GameRegistry, [{{:"$1", :_, :_}, [], [:"$1"]}])
+    Logger.info(length: Kernel.length(games))
+    games
+    # case Kernel.length(games) do
+    #   0 ->
+    #     []
+    #   n when n > 1 ->
+    #     games
+    #   _ ->
+    #     { :error, :some_general_error }
+  # end
+end
+
   @spec get_game(String.t() | pid()) :: {:ok, Game.t()} | {:error, :game_not_found}
   def get_game(pid) when is_pid(pid) do
     GenServer.call(pid, :get_game)

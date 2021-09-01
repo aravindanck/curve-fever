@@ -2,7 +2,7 @@
 @import "./phoenix.css";
 
 /* App styles */
-$bgcolor: white;
+$bgcolor: #F5F5F5;
 $gray: #696969;
 
 body {
@@ -21,6 +21,25 @@ body {
     font-family: monospace;
   }
 
+  input, input:active, input:focus {
+    border-radius: unset !important;
+    border: 1px solid $gray !important;
+    font-family: monospace;
+  }
+
+  .alert {
+    max-width: 1160px;
+    margin: 0 auto;
+
+    &.alert-info {
+      color: black;
+      background-color: lightgray;
+      border: 1px solid darkgray;
+      font-weight: bold;
+      text-align: center;
+    }
+  }
+
 }
 
 #game-container {
@@ -31,10 +50,9 @@ body {
     border: 3px solid $gray;
   }
 
-  .center-position {
-    position: absolute;
-    top: 10%;
-    left: 25%;
+  #start-button {
+    margin-top: 10%;
+    margin-left: 30%;
   }
 
 }

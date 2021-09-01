@@ -50,9 +50,9 @@ function setCanvas() {
       canvasPixels.data[i + 3] = 255;
 
     } else {
-      canvasPixels.data[i]     = 255;     // red
-      canvasPixels.data[i + 1] = 255;     // green
-      canvasPixels.data[i + 2] = 255;     // blue
+      canvasPixels.data[i]     = 245;     // red
+      canvasPixels.data[i + 1] = 245;     // green
+      canvasPixels.data[i + 2] = 245;     // blue
       canvasPixels.data[i + 3] = 255;
     }
   }
@@ -79,7 +79,7 @@ Hooks.canvas = {
       ctx.strokeStyle = diff_json['color'];
       ctx.fillStyle = diff_json['color'];
       ctx.beginPath();
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 3;
       ctx.moveTo(diff_json['y1'], diff_json['x1']);
       ctx.lineTo(diff_json['y2'], diff_json['x2']);
       ctx.stroke();

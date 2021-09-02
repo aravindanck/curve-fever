@@ -102,15 +102,13 @@ defmodule CurveFeverWeb.GameLive do
   @impl true
   def handle_info(%{event: :game_updated, payload: state}, socket) do
     Logger.info("Game Updated(:game_updated) broadcast caught")
-    Logger.info(game_updated_socket: socket)
     Logger.info(game_started_signal_received_by: socket.assigns.player.name)
     {:noreply, assign(socket, game: state.game)}
   end
 
   @impl true
   def handle_info(%{event: :canvas_updated, payload: canvas_diff}, socket) do
-    Logger.info("Canvas Updated broadcast caught ")
-    Logger.info(canvas_update_event_received_by: socket.assigns.player.name, canvas_diff: canvas_diff)
+    Logger.info(canvas_update_event_received_by: socket.assigns.player.name)
     {:noreply, assign(socket, canvas_diff: canvas_diff)}
   end
 
@@ -132,14 +130,14 @@ defmodule CurveFeverWeb.GameLive do
   def handle_info(%{event: :game_ended, payload: winner}, socket) do
 
     socket = socket
-      |> put_temporary_flash(:info, "Player #{winner.name} won!!!")
+      |> put_temporary_flash(:info, "Player #{winner.name} won!")
 
     {:noreply, socket}
   end
 
   def handle_info(:insufficient_players, socket) do
     socket = socket
-    |> put_temporary_flash(:error, "A game needs a minimum of two players")
+    |> put_temporary_flash(:error, "A game needs a minimum of two players!")
 
     {:noreply, socket}
   end

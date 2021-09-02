@@ -8,8 +8,6 @@ defmodule CurveFeverWeb.GameController do
 
     game_path = Routes.game_path(conn, :index, game_id: game_id, player_id: player_id)
 
-    Logger.info(game_path: game_path)
-
     conn
     |> put_session(:game_id, game_id)
     |> put_session(:player_id, player_id)

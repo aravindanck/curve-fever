@@ -104,13 +104,35 @@ defmodule CurveFever.Game do
 
   def move_forward(game, player) do
     Logger.info("**********************************Move player forward**********************************")
-    Logger.info(invoked_by: self(), player_name: player.name)
+    Logger.info(invoked_by: self(), for_player: player.name)
 
+    {updated_game, updated_player} = Enum.reduce_while(1..game.config.pixelsPerIteration, {game, player}, fn _i, {updated_game, updated_player} ->
+                                      {:ok, game, player, _diff} = move_step(updated_game, updated_player)
+                                      if player.isAlive do
+                                        {:cont, {game, player}}
+                                      else
+                                        {:halt, {game, player}}
+                                      end
+                                    end)
+
+    canvas_diff = %{color: player.color,
+                    x1: player.x,
+                    y1: player.y,
+                    x2: updated_player.x,
+                    y2: updated_player.y};
+
+    Logger.info(canvas_diff: canvas_diff)
+
+    {:ok, updated_game, updated_player, canvas_diff}
+
+
+  end
+
+  defp move_step(game, player) do
     speed = game.config.speed
     deltaX = :math.cos(player.angle * :math.pi / 180) * speed
     deltaY = :math.sin(player.angle * :math.pi / 180) * speed
 
-    Logger.info(deltaX: deltaX, deltaY: deltaY)
     current_pos_index = (trunc(player.x) * game.config.canvasWidth) + trunc(player.y)
 
     new_x = player.x + deltaX
@@ -125,10 +147,7 @@ defmodule CurveFever.Game do
             x2: new_x,
             y2: new_y};
 
-    Logger.info(canvas_diff: canvas_diff)
-
     res = clears_hit_test?(new_x, new_y, game.config.canvasWidth, game.config.canvasHeight)
-    Logger.info(x: player.x, y: player.y, new_pos_X: new_x, new_pos_y: new_y, clears_hit_test?: res)
     player = Map.put(player, :x, new_x)
     player = Map.put(player, :y, new_y)
 
@@ -148,10 +167,8 @@ defmodule CurveFever.Game do
         {:ok, game, player, canvas_diff}
       end
     else
-      Logger.info(new_pos_index: new_pos_index)
       game = %{game | canvas: List.update_at(game.canvas, new_pos_index, fn _ -> canvas_value end)}
 
-      Logger.info(new_x: new_x, new_y: new_y, val: Enum.at(game.canvas, new_pos_index))
       {:ok, game} = update_player(game, player)
 
       {:ok, game, player, canvas_diff}

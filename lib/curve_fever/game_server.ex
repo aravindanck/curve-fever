@@ -206,7 +206,6 @@ end
   end
 
   defp broadcast_game_updated!(game_id, game) do
-    Logger.info(game_id: game_id, game_state: game)
     broadcast!(game_id, :game_updated, %{:game => game})
   end
 

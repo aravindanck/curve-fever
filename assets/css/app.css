@@ -40,18 +40,47 @@ body {
     }
   }
 
+  .table {
+    display: table;
+    width: 100%;
+
+    .table-row {
+      display: table-row;
+      border: 1px solid $gray;
+
+      .table-cell {
+        display: table-cell;
+        padding: 10px 10px 10px 0;
+        width: 50%;
+
+        &.left {
+          text-align: left;
+        }
+
+        &.right {
+          text-align: right;
+        }
+      }
+    }
+  }
+
+  a {
+    cursor: pointer;
+    color: $gray;
+
+    &:active {
+      color: black;
+      font-weight: bold;
+    }
+  }
 }
 
-#lobby-container {
-  display: flex;
+.game-list {
+  .table {
+    width: 70%;
+  }
 }
-#new-game-container {
-  background-color: lightgray;
-  margin: 25px;
-}
-#colum-container {
-  background-color: lightblue;
-}
+
 #game-container {
   margin: 25px auto;
   max-width: 1160px;

@@ -17,7 +17,7 @@ defmodule CurveFeverWeb.LobbyLive do
 
   @impl true
   def handle_event("new_game", %{"value" => ""}, socket) do
-    game_id = MnemonicSlugs.generate_slug(1)
+    game_id = MnemonicSlugs.generate_slug(2)
     Logger.info(game_id: game_id)
     # TODO: Use GameSupervisor instead
     payload = %{

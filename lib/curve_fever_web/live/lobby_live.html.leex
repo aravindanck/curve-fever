@@ -1,17 +1,27 @@
-<div id="lobby-container" class="container row">
-    <div id="new-game-container" class="column">
-        <h1>Curve Fever</h1>
-        <button phx-click="new_game" class="center-position">Enter a new Game</button>
+<div class="container">
+    <h1>Curve Fever</h1>
+</div>
+
+<div class="container row">
+    <div class="column">
+        <button phx-click="new_game">Create Game and Enter</button>
     </div>
-    <div id="new-game-container" class="column">
-        <div id = "game-list">
-            <h2>Alive Games</h2>
-            <%= for game <- @games do %>
-                <div id="colum-container" class="column">
-                <p><%= game %><p>
-                <button phx-click="join-game" phx-value-column="<%= game %>">Join</button>
+    <div class="column">
+        <div class="game-list">
+            <%= if length(@games) > 0 do %>
+                <h3>Join An Existing Game</h3>
+                <div class="table">
+                    <%= for game <- @games do %>
+                        <div class="game-list table-row">
+                            <div class="table-cell left">
+                                <%= game %>
+                            </div>
+                            <div class="table-cell right">
+                                <a phx-click="join-game" phx-value-column="<%= game %>">Enter</a>
+                            </div>
+                        </div>
+                    <% end %>
                 </div>
-            <% end %>
-        </div>
+            <%end %>
     </div>
 </div>

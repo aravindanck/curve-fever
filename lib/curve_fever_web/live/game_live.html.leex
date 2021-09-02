@@ -26,26 +26,30 @@
 
             <div class="container">
                 <div style="margin: 20px 0">
-                    You're logged in as <span style="color: <%=@player.color%>"><%=@player.name%></span>
+                    You're logged into game <span><%=@game.id%></span> as <h2 style="color: <%=@player.color%>"><%=@player.name%></h2>
                 </div>
 
                 <div>
                     <%= if @game.game_state != :running do %>
                         <h3>Players in Game Room</h3>
-                        <ul>
+                            <div id = "flex-container">
+                            <div>
                             <%= for player <- @game.players do %>
-                                <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li>
+                                <span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%>
                             <% end %>
-                        </ul>
+                            </div>
+                            </div>
                     <%else %>
                         <h3>Other Players</h3>
-                        <ul>
+                        <div id = "flex-container">
+                            <div>
                             <%= for player <- @game.players do %>
                                 <%= if @player.id != player.id  do %>
-                                    <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li>
+                                    <span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%>
                                 <% end %>
                             <% end %>
-                        </ul>
+                           </div>
+                        </div>
                     <% end %>
                 </div>
                 <%= if @game.game_state == :completed do %>

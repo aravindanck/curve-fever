@@ -1,19 +1,17 @@
-<div id="signin-container" class="container row">
-    <div class="column">
+<div id="lobby-container" class="container row">
+    <div id="new-game-container" class="column">
         <h1>Curve Fever</h1>
-
         <button phx-click="new_game" class="center-position">Enter a new Game</button>
-
     </div>
-    <div class="column">
+    <div id="new-game-container" class="column">
+        <div id = "game-list">
+            <h2>Alive Games</h2>
+            <%= for game <- @games do %>
+                <div id="colum-container" class="column">
+                <p><%= game %><p>
+                <button phx-click="join-game" phx-value-column="<%= game %>">Join</button>
+                </div>
+            <% end %>
+        </div>
     </div>
-</div>
-
-<div id = "game-list">
-<h2>Alive Games</h2>
-<%= for game <- @games do %>
-<p><%= game %><p>
-<button phx-click="join-game" phx-value-column="<%= game %>">Join</button>
-<% end %>
-</div>
 </div>

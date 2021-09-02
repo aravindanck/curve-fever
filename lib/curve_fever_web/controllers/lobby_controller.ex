@@ -13,6 +13,7 @@ defmodule CurveFeverWeb.LobbyController do
     Logger.info(lobby_path: lobby_path)
 
     conn
+    |> clear_session()
     |> put_session(:player_name, player_name)
     |> redirect(to: lobby_path)
   end

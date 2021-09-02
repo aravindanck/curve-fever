@@ -42,6 +42,16 @@ body {
 
 }
 
+#lobby-container {
+  display: flex;
+}
+#new-game-container {
+  background-color: lightgray;
+  margin: 25px;
+}
+#colum-container {
+  background-color: lightblue;
+}
 #game-container {
   margin: 25px auto;
   max-width: 1160px;

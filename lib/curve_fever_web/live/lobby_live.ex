@@ -8,7 +8,10 @@ defmodule CurveFeverWeb.LobbyLive do
 
   @impl true
   def mount(_params, session, socket) do
-    {:ok, assign(socket, player_name: session["player_name"], game_id: "", games: GameServer.list_rooms())}
+    Logger.info(lobby_live_length: Enum.count(GameServer.list_rooms()))
+    Logger.info("games: #{GameServer.list_rooms()}")
+
+    {:ok, assign(socket, player_name: session["player_name"], games: GameServer.list_rooms())}
   end
 
 

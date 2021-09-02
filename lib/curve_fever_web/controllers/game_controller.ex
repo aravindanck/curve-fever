@@ -24,7 +24,7 @@ defmodule CurveFeverWeb.GameController do
   end
 
   def index(conn, %{"game_id" => game_id}) do
-    Logger.info(game_id: game_id)
+
     conn
     |> put_session(:game_id, game_id)
     |> Controller.live_render(CurveFeverWeb.GameLive)

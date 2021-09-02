@@ -42,6 +42,24 @@ defmodule CurveFever.GameServer do
     call_by_name(game_id, {:get_player_by_id, player_id})
   end
 
+
+  @spec list_rooms :: list
+  def list_rooms do
+
+    games_room = Registry.select(CurveFever.GameRegistry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
+    Logger.info(room: games_room)
+    games = Registry.select(CurveFever.GameRegistry, [{{:"$1", :_, :_}, [], [:"$1"]}])
+    games
+    # case Kernel.length(games) do
+    #   0 ->
+    #     []
+    #   n when n > 1 ->
+    #     games
+    #   _ ->
+    #     { :error, :some_general_error }
+  # end
+end
+
   @spec get_game(String.t() | pid()) :: {:ok, Game.t()} | {:error, :game_not_found}
   def get_game(pid) when is_pid(pid) do
     GenServer.call(pid, :get_game)
@@ -51,9 +69,10 @@ defmodule CurveFever.GameServer do
     call_by_name(game_id, :get_game)
   end
 
-  # TODO: Refctor Registry Code
+  # TODO: Refactor Registry Code
   @spec start_link(binary) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(game_id) do
+    Logger.info("Starting link for #{game_id}")
     GenServer.start(__MODULE__, game_id, name: via_tuple(game_id))
   end
 

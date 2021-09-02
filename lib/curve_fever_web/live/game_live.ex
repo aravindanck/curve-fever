@@ -12,6 +12,9 @@ defmodule CurveFeverWeb.GameLive do
   # TODO: Fix lobby_path issue
   @impl true
   def mount(_params, session, socket) do
+    Logger.info(session["player_id"])
+    Logger.info(session["game_id"])
+
     socket =
       with %{"game_id" => game_id, "player_id" => player_id} <- session,
            {:ok, game} <- GameServer.get_game(game_id),

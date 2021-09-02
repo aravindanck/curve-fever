@@ -26,20 +26,21 @@
 
             <div class="container">
                 <div style="margin: 20px 0">
-                    You're logged in as <span style="color: <%=@player.color%>"><%=@player.name%></span>
+                    Game Room: <%=@game.id%><br/>
+                    You're logged in as <b style="font-size: 18px;color: <%=@player.color%>"><%=@player.name%></b>
                 </div>
 
                 <div>
                     <%= if @game.game_state != :running do %>
                         <h3>Players in Game Room</h3>
-                        <ul>
+                        <ul style="list-style: none">
                             <%= for player <- @game.players do %>
                                 <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li>
                             <% end %>
                         </ul>
                     <%else %>
                         <h3>Other Players</h3>
-                        <ul>
+                        <ul style="list-style: none">
                             <%= for player <- @game.players do %>
                                 <%= if @player.id != player.id  do %>
                                     <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li>

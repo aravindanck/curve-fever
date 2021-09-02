@@ -1,7 +1,6 @@
 defmodule CurveFeverWeb.Router do
   use CurveFeverWeb, :router
 
-  import Phoenix.LiveDashboard.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -19,9 +18,11 @@ defmodule CurveFeverWeb.Router do
   scope "/", CurveFeverWeb do
     pipe_through :browser
 
-    live "/", LobbyLive, :index
+    live "/", SigninLive, :index
     get("/join_game", GameController, :join)
     get("/game", GameController, :index)
+    get("/lobby", LobbyController, :join)
+    get("/join_lobby", LobbyController, :index)
   end
 
   # Other scopes may use custom stacks.
@@ -36,12 +37,5 @@ defmodule CurveFeverWeb.Router do
   # If your application does not have an admins-only section yet,
   # you can use Plug.BasicAuth to set up some basic authentication
   # as long as you are also using SSL (which you should anyway).
-  if Mix.env() in [:dev, :test] do
-    import Phoenix.LiveDashboard.Router
 
-    scope "/" do
-      pipe_through :browser
-      live_dashboard "/dashboard", metrics: CurveFeverWeb.Telemetry
-    end
-  end
 end

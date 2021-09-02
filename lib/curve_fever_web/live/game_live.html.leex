@@ -40,7 +40,7 @@
                         </ul>
                     <%else %>
                         <h3>Other Players</h3>
-                        <ul>
+                        <ul style="list-style: none">
                             <%= for player <- @game.players do %>
                                 <%= if @player.id != player.id  do %>
                                     <li><span style="color: <%=player.color%>" id="<%= player.id%>"><%= player.name%></li>

@@ -7,7 +7,7 @@ defmodule CurveFever.GameConfig do
             canvasHeight: 700,
             lineWidth: 3,
             speed: 1,
-            maximumChangeOfAngle: 2, # angle change on direction change key press
+            maximumChangeOfAngle: 5, # angle change on direction change key press
             initialDelay: 5000,
             stepFrequency: 50,
             pixelsPerIteration: 2

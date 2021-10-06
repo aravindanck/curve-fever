@@ -14,8 +14,8 @@ defmodule CurveFever.Application do
       {Registry, keys: :unique, name: CurveFever.GameRegistry},
       CurveFeverWeb.Presence,
       # Start the Endpoint (http/https)
-      CurveFeverWeb.Endpoint
-      # CurveFever.GameServer
+      CurveFeverWeb.Endpoint,
+      CurveFever.GameSupervisor
       # Start a worker by calling: CurveFever.Worker.start_link(arg)
       # {CurveFever.Worker, arg}
     ]

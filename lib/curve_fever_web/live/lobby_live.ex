@@ -3,6 +3,7 @@ defmodule CurveFeverWeb.LobbyLive do
 
   alias CurveFever.Player
   alias CurveFever.GameServer
+  alias CurveFever.GameSupervisor
 
   require Logger
 
@@ -19,7 +20,9 @@ defmodule CurveFeverWeb.LobbyLive do
   def handle_event("new_game", %{"value" => ""}, socket) do
     game_id = MnemonicSlugs.generate_slug(2)
     Logger.info(game_id: game_id)
-    # TODO: Use GameSupervisor instead
+
+    GameSupervisor.start_game(game_id)
+
     payload = %{
       game_id: game_id,
       player_name: socket.assigns.player_name
@@ -53,9 +56,6 @@ def handle_info({:join_game, attrs}, socket) do
   Logger.info(game_id: game_id, player_name: player_name)
 
   player = Player.new(player_name)
-
-  # TODO: Game Server should be created in Create Game event handler
-  GameServer.start_link(game_id)
 
   socket =
     case GameServer.add_player(game_id, player) do

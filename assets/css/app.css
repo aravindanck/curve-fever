@@ -2,28 +2,25 @@
 @import "./phoenix.css";
 
 /* App styles */
-$bgcolor: #F5F5F5;
-$gray: #696969;
-
 body {
-  background-color: $bgcolor;
+  background-color: #F5F5F5;
   font-family: monospace;
 
   header {
-    background-color: $bgcolor;
+    background-color: #F5F5F5;
   }
 
   button {
-    border: 1px solid $gray;
+    border: 1px solid #696969;
     border-radius: 0;
     background-color: beige;
-    color: $gray;
+    color: #696969;
     font-family: monospace;
   }
 
   input, input:active, input:focus {
     border-radius: unset !important;
-    border: 1px solid $gray !important;
+    border: 1px solid #696969 !important;
     font-family: monospace;
   }
 
@@ -46,7 +43,7 @@ body {
 
     .table-row {
       display: table-row;
-      border: 1px solid $gray;
+      border: 1px solid #696969;
 
       .table-cell {
         display: table-cell;
@@ -66,7 +63,7 @@ body {
 
   a {
     cursor: pointer;
-    color: $gray;
+    color: #696969;
 
     &:active {
       color: black;
@@ -86,7 +83,7 @@ body {
   max-width: 1160px;
   
   canvas {
-    border: 3px solid $gray;
+    border: 3px solid #696969;
   }
 
   #start-button {
@@ -151,35 +148,34 @@ body {
 
 
 /* Alerts and form errors */
-.alert {
-  padding: 15px;
-  margin-bottom: 20px;
-  border: 1px solid transparent;
-  border-radius: 4px;
+
+#flash {
+  max-width: 1160px;
+  margin: 0 auto;
+
+  p {
+    margin-bottom: 0
+  }
 }
-.alert-info {
-  color: #31708f;
-  background-color: #d9edf7;
-  border-color: #bce8f1;
-}
-.alert-warning {
-  color: #8a6d3b;
-  background-color: #fcf8e3;
-  border-color: #faebcc;
-}
-.alert-danger {
-  color: #a94442;
-  background-color: #f2dede;
-  border-color: #ebccd1;
-}
-.alert p {
-  margin-bottom: 0;
-}
-.alert:empty {
-  display: none;
-}
-.invalid-feedback {
-  color: #a94442;
-  display: block;
-  margin: -1rem 0 2rem;
+
+#flash {
+  .info {
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;  
+  }
+
+  .error {
+    color: #a94442;
+    background-color: #f2dede;
+    border-color: #ebccd1;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;  
+  }
 }

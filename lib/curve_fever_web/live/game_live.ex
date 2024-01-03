@@ -9,52 +9,42 @@ defmodule CurveFeverWeb.GameLive do
 
   require Logger
 
-  # TODO: Fix lobby_path issue
   @impl true
-  def mount(_params, session, socket) do
-    Logger.info(session["player_id"])
-    Logger.info(session["game_id"])
-
+  def mount(%{"player_id" => player_id, "game_id" => game_id}, _session, socket) do
     socket =
-      with %{"game_id" => game_id, "player_id" => player_id} <- session,
-           {:ok, game} <- GameServer.get_game(game_id),
+      with {:ok, game} <- GameServer.get_game(game_id),
            {:ok, player} <- GameServer.get_player_by_id(game_id, player_id),
-          #  {:ok, _} <- Presence.track(self(), game_id, player_id, %{}),
+           #  {:ok, _} <- Presence.track(self(), game_id, player_id, %{}),
            :ok <- Phoenix.PubSub.subscribe(CurveFever.PubSub, game_id) do
         assign(socket, game: game, player: player, canvas_diff: [])
       else
-        _ ->
-          _params =
-            if Map.has_key?(session, "game_id") do
-              Map.take(session, ["game_id"])
-            else
-              []
-            end
-
-          # lobby_path = Routes.live_path(socket, LobbyLive, params)
-          push_redirect(socket, to: "/")
+        error ->
+          Logger.warning("Error while joining game redirecting to homepage, #{inspect(error)}")
+          push_navigate(socket, to: "/")
       end
 
     {:ok, socket}
   end
 
   @impl true
-  def handle_event("start-game", params, socket) do
+  def handle_event("start_game", params, socket) do
     Logger.info("Start Game invoked", params)
 
     case GameServer.start_game(game_id(socket)) do
-       {:ok, game} ->
-          assign(socket, game: game)
-       {:error, :insufficient_players} ->
-          send(self(), :insufficient_players)
-    end
+      {:ok, game} ->
+        # assign(socket, game: game)
+        {:reply, %{game: game}, socket}
 
-    {:noreply, socket}
+      {:error, :insufficient_players} ->
+        socket =
+          socket
+          |> put_temporary_flash(:error, "A game needs a minimum of two players!")
+
+        {:noreply, socket}
+    end
   end
 
-
   def handle_event("key_press", %{"key" => "ArrowLeft"}, socket) do
-
     Logger.info("Arrow Left pressed")
     game_id = socket |> game_id()
     player_id = socket |> player_id()
@@ -65,7 +55,6 @@ defmodule CurveFeverWeb.GameLive do
   end
 
   def handle_event("key_press", %{"key" => "ArrowRight"}, socket) do
-
     Logger.info("Arrow Right pressed")
     game_id = socket |> game_id()
     player_id = socket |> player_id()
@@ -79,8 +68,6 @@ defmodule CurveFeverWeb.GameLive do
     Logger.info("Invalid key", keypressed)
     {:noreply, socket}
   end
-
-
 
   @impl true
   def handle_info(%{event: :players_updated, payload: players}, socket) do
@@ -123,16 +110,9 @@ defmodule CurveFeverWeb.GameLive do
   end
 
   def handle_info(%{event: :game_ended, payload: winner}, socket) do
-
-    socket = socket
+    socket =
+      socket
       |> put_temporary_flash(:info, "Player #{winner.name} won!")
-
-    {:noreply, socket}
-  end
-
-  def handle_info(:insufficient_players, socket) do
-    socket = socket
-    |> put_temporary_flash(:error, "A game needs a minimum of two players!")
 
     {:noreply, socket}
   end
@@ -151,7 +131,6 @@ defmodule CurveFeverWeb.GameLive do
     socket.assigns.player.id
   end
 
-
   # defp online_players(game_id) do
   #   Logger.info(Presence.list(game_id))
   #   game_id
@@ -164,5 +143,4 @@ defmodule CurveFeverWeb.GameLive do
 
     put_flash(socket, level, message)
   end
-
 end

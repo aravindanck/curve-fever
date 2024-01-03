@@ -1,12 +1,11 @@
 defmodule CurveFeverWeb.Router do
   use CurveFeverWeb, :router
 
-
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_live_flash
-    plug :put_root_layout, {CurveFeverWeb.LayoutView, :root}
+    plug :put_root_layout, {CurveFeverWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
@@ -18,11 +17,9 @@ defmodule CurveFeverWeb.Router do
   scope "/", CurveFeverWeb do
     pipe_through :browser
 
-    live "/", SigninLive, :index
-    get("/join_game", GameController, :join)
-    get("/game", GameController, :index)
-    get("/lobby", LobbyController, :join)
-    get("/join_lobby", LobbyController, :index)
+    live "/", SigninLive
+    live "/lobby", LobbyLive
+    live "/game", GameLive
   end
 
   # Other scopes may use custom stacks.
@@ -37,5 +34,4 @@ defmodule CurveFeverWeb.Router do
   # If your application does not have an admins-only section yet,
   # you can use Plug.BasicAuth to set up some basic authentication
   # as long as you are also using SSL (which you should anyway).
-
 end

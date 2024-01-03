@@ -37,28 +37,22 @@ defmodule CurveFever.GameServer do
   end
 
   @spec get_player_by_id(String.t(), String.t()) ::
-  {:ok, Player.t()} | {:error, :game_not_found | :player_not_found}
+          {:ok, Player.t()} | {:error, :game_not_found | :player_not_found}
   def get_player_by_id(game_id, player_id) do
     call_by_name(game_id, {:get_player_by_id, player_id})
   end
 
-
   @spec list_rooms :: list
   def list_rooms do
+    games_room =
+      Registry.select(CurveFever.GameRegistry, [
+        {{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}
+      ])
 
-    games_room = Registry.select(CurveFever.GameRegistry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
     Logger.info(room: games_room)
     games = Registry.select(CurveFever.GameRegistry, [{{:"$1", :_, :_}, [], [:"$1"]}])
     games
-    # case Kernel.length(games) do
-    #   0 ->
-    #     []
-    #   n when n > 1 ->
-    #     games
-    #   _ ->
-    #     { :error, :some_general_error }
-  # end
-end
+  end
 
   @spec get_game(String.t() | pid()) :: {:ok, Game.t()} | {:error, :game_not_found}
   def get_game(pid) when is_pid(pid) do
@@ -139,7 +133,6 @@ end
     end
   end
 
-
   @impl GenServer
   def handle_call({:turn_right, player_id}, _from, state) do
     Logger.info(player_id: player_id)
@@ -161,15 +154,16 @@ end
   end
 
   defp canvas_update(state) do
-
-    {game, canvas_diff} = state.game.players
-                          |> Enum.filter(fn player -> player.isAlive end)
-                          |> Enum.reduce({state.game, []}, fn (player, {game_acc, canvas_diff_acc}) ->
-                                        {:ok, game_acc, _player, diff} = Game.move_forward(game_acc, player)
-                                        {game_acc, [diff] ++ canvas_diff_acc}
-                                    end)
+    {game, canvas_diff} =
+      state.game.players
+      |> Enum.filter(fn player -> player.isAlive end)
+      |> Enum.reduce({state.game, []}, fn player, {game_acc, canvas_diff_acc} ->
+        {:ok, game_acc, _player, diff} = Game.move_forward(game_acc, player)
+        {game_acc, [diff] ++ canvas_diff_acc}
+      end)
 
     broadcast_canvas_updated!(game.id, canvas_diff)
+
     if game.game_state == :running do
       Process.send_after(self(), :update_canvas, game.config.stepFrequency)
     else
@@ -223,5 +217,4 @@ end
   defp via_tuple(game_id) do
     {:via, Registry, {CurveFever.GameRegistry, game_id}}
   end
-
 end

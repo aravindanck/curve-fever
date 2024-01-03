@@ -1,0 +1,23 @@
+<section class="container">
+  <h1>Curve Fever</h1>
+</section>
+<div class="container row">
+  <div class="column">
+    <button phx-click="new_game">Create Game and Enter</button>
+  </div>
+  <div class="column">
+    <div :if={length(@games) > 0} class="game-list">
+      <h3>Join An Existing Game</h3>
+      <div :for={game <- @games} class="table">
+        <div class="game-list table-row">
+          <div class="table-cell left">
+            <%= game %>
+          </div>
+          <div class="table-cell right">
+            <a phx-click="join_game" phx-value-column={game}>Enter</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

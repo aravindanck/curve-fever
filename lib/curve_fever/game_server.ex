@@ -5,7 +5,7 @@ defmodule CurveFever.GameServer do
 
   use GenServer
 
-  alias CurveFever.Game
+  alias CurveFever.{Game, GameConfig, Player}
 
   require Logger
 
@@ -66,7 +66,7 @@ defmodule CurveFever.GameServer do
   # TODO: Refactor Registry Code
   @spec start_link(binary) :: :ignore | {:error, any} | {:ok, pid}
   def start_link(game_id) do
-    Logger.info("Starting link for #{game_id}")
+    Logger.info("Starting game server GenServer for #{game_id}")
     GenServer.start(__MODULE__, game_id, name: via_tuple(game_id))
   end
 
@@ -103,12 +103,12 @@ defmodule CurveFever.GameServer do
   end
 
   @impl GenServer
-  def handle_call(:start_game, _from, state) do
-    case Game.start_game(state.game) do
-      {:ok, game} ->
+  def handle_call(:start_game, _from, %{game: %Game{} = game} = state) do
+    case Game.start_game(game) do
+      {:ok, %Game{config: %GameConfig{initial_delay: initial_delay}} = game} ->
         broadcast_game_updated!(game.id, %{game: game})
 
-        Process.send_after(self(), :update_canvas, game.config.initial_delay)
+        Process.send_after(self(), :update_canvas, initial_delay)
 
         Logger.info(start_game_send_pid: self())
         {:reply, {:ok, game}, %{game: game}}
@@ -119,32 +119,40 @@ defmodule CurveFever.GameServer do
   end
 
   @impl GenServer
-  def handle_call({:turn_left, player_id}, _from, state) do
+  def handle_call(
+        {:turn_left, player_id},
+        _from,
+        %{game: %Game{} = game} = state
+      ) do
     Logger.info(player_id: player_id)
 
-    with {:ok, player} <- Game.get_player_by_id(state.game, player_id) do
-      if player.is_alive do
-        {:ok, game, player} = Game.turn(state.game, player, 1)
-        {:ok, game} = Game.update_player(game, player)
-        {:reply, {:ok, game, player}, %{game: game, player: player}}
-      else
-        {:reply, {:ok, state.game, player}, %{game: state.game, player: player}}
-      end
+    with {:ok, player} <- Game.get_player_by_id(game, player_id),
+         true <- player.is_alive,
+         {:ok, game, player} = Game.turn(game, player, 1),
+         {:ok, game} = Game.update_player(game, player) do
+      {:reply, {:ok, game, player}, %{game: game, player: player}}
+    else
+      _ ->
+        {:reply, {:ok, game}, state}
     end
   end
 
   @impl GenServer
-  def handle_call({:turn_right, player_id}, _from, state) do
+  def handle_call(
+        {:turn_right, player_id},
+        _from,
+        %{game: %Game{} = game} = state
+      ) do
     Logger.info(player_id: player_id)
 
-    with {:ok, player} <- Game.get_player_by_id(state.game, player_id) do
-      if player.is_alive do
-        {:ok, game, player} = Game.turn(state.game, player, -1)
-        {:ok, game} = Game.update_player(game, player)
-        {:reply, {:ok, game, player}, %{game: game, player: player}}
-      else
-        {:reply, {:ok, state.game, player}, %{game: state.game, player: player}}
-      end
+    with {:ok, player} <- Game.get_player_by_id(game, player_id),
+         true <- player.is_alive,
+         {:ok, game, player} = Game.turn(game, player, -1),
+         {:ok, game} = Game.update_player(game, player) do
+      {:reply, {:ok, game, player}, %{game: game, player: player}}
+    else
+      _ ->
+        {:reply, {:ok, game}, state}
     end
   end
 
@@ -153,22 +161,31 @@ defmodule CurveFever.GameServer do
     canvas_update(state)
   end
 
-  defp canvas_update(state) do
+  defp canvas_update(
+         %{
+           game:
+             %Game{
+               id: game_id,
+               status: game_status,
+               players: players,
+               config: %GameConfig{step_frequency: step_frequency}
+             } = game
+         } = _state
+       ) do
     {game, canvas_diff} =
-      state.game.players
+      players
       |> Enum.filter(fn player -> player.is_alive end)
-      |> Enum.reduce({state.game, []}, fn player, {game_acc, canvas_diff_acc} ->
+      |> Enum.reduce({game, []}, fn player, {game_acc, canvas_diff_acc} ->
         {:ok, game_acc, _player, diff} = Game.move_forward(game_acc, player)
         {game_acc, [diff] ++ canvas_diff_acc}
       end)
 
-    broadcast_canvas_updated!(game.id, canvas_diff)
+    broadcast_canvas_updated!(game_id, canvas_diff)
 
-    if game.game_state == :running do
-      Process.send_after(self(), :update_canvas, game.config.step_frequency)
+    if game_status == :running do
+      Process.send_after(self(), :update_canvas, step_frequency)
     else
-      broadcast_game_ended!(game.id, List.first(Game.players_alive(game)))
-      {:noreply, %{game: game}}
+      broadcast_game_ended!(game_id, List.first(Game.players_alive(game)))
     end
 
     {:noreply, %{game: game}}

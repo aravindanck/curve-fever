@@ -55,18 +55,15 @@ defmodule CurveFever.Player do
       9 => "navy"
     }
 
-    initialized_player =
-      player
-      |> Map.update!(:x, fn _ -> :rand.uniform(config.canvas_height - 1) end)
-      |> Map.update!(:y, fn _ -> :rand.uniform(config.canvas_width - 1) end)
-      |> Map.update!(:color, fn _ -> color[index] end)
-      |> Map.update!(:is_alive, fn _ -> true end)
-      |> Map.update!(:is_playing, fn _ -> true end)
-      |> Map.update!(:canceled, fn _ -> false end)
-      |> Map.update!(:speed, fn _ -> 1 end)
-      |> Map.update!(:angle, fn _ -> :rand.uniform(360) end)
-      |> Map.update!(:distance, fn _ -> 0 end)
-
-    initialized_player
+    player
+    |> Map.update!(:x, fn _ -> :rand.uniform(config.canvas_height - 1) end)
+    |> Map.update!(:y, fn _ -> :rand.uniform(config.canvas_width - 1) end)
+    |> Map.update!(:color, fn _ -> color[index] end)
+    |> Map.update!(:is_alive, fn _ -> true end)
+    |> Map.update!(:is_playing, fn _ -> true end)
+    |> Map.update!(:canceled, fn _ -> false end)
+    |> Map.update!(:speed, fn _ -> 1 end)
+    |> Map.update!(:angle, fn _ -> :rand.uniform(360) end)
+    |> Map.update!(:distance, fn _ -> 0 end)
   end
 end

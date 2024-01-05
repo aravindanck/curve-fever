@@ -3,14 +3,14 @@
 </section>
 <div id="game-container" phx-change="update">
   <div class="row">
-    <div :if={@game.game_state == :waiting_to_start} class="column">
+    <div :if={@game.status == :waiting_to_start} class="column">
       <button phx-click="start_game" id="start-button">Start</button>
     </div>
 
     <div
-      :if={@game.game_state != :waiting_to_start}
+      :if={@game.status != :waiting_to_start}
       id="game-state"
-      data-value={@game.game_state}
+      data-value={@game.status}
       phx-change="update"
       phx-hook="gamestate"
     >
@@ -36,12 +36,12 @@
     <div class="column" id="players-list">
       <div class="container">
         <div style="margin: 20px 0">
-          Game Room: <%= @game.id %><br /> You're logged in as
-          <b style={"font-size: 18px;color: #{@player.color}"}><%= @player.name %></b>
+          <div>Welcome <b style={"color: #{@player.color}"}><%= @player.name %></b></div>
+          <div>You're in Game Room: <b><%= @game.id %></b></div>
         </div>
 
         <div>
-          <%= if @game.game_state != :running do %>
+          <%= if @game.status != :running do %>
             <h3>Players in Game Room</h3>
             <ul style="list-style: none">
               <%= for p <- @game.players do %>
@@ -59,7 +59,7 @@
             </ul>
           <% end %>
         </div>
-        <div :if={@game.game_state == :completed}>
+        <div :if={@game.status == :completed}>
           <button phx-click="start_game">Play Again</button>
         </div>
       </div>

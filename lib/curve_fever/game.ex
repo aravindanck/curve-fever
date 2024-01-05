@@ -13,9 +13,9 @@ defmodule CurveFever.Game do
             online_players: [],
             canvas: [],
             config: %GameConfig{},
-            game_state: :waiting_to_start
+            status: :waiting_to_start
 
-  @type game_state ::
+  @type game_status ::
           :waiting_to_start
           | :running
           | :completed
@@ -25,7 +25,7 @@ defmodule CurveFever.Game do
           players: list(Player.t()),
           canvas: list(),
           config: GameConfig.t(),
-          game_state: game_state()
+          status: game_status()
         }
 
   @spec new(String.t()) :: t()
@@ -93,7 +93,7 @@ defmodule CurveFever.Game do
 
     game =
       game
-      |> Map.put(:game_state, :running)
+      |> Map.put(:status, :running)
       |> Map.put(:canvas, canvas)
       |> Map.put(:players, players)
 
@@ -103,17 +103,16 @@ defmodule CurveFever.Game do
   def start_game(_game),
     do: {:error, :insufficient_players}
 
-  def move_forward(game, player) do
-    Logger.info(
-      "**********************************Move player forward**********************************"
-    )
+  def move_forward(
+        %Game{config: %GameConfig{pixels_per_iteration: pixels_per_iteration}} = game,
+        %Player{name: name, x: x, y: y, color: color} = player
+      ) do
 
-    Logger.info(invoked_by: self(), for_player: player.name)
+    Logger.info("Moving forward , invoked_by: #{inspect(self())}, for_player: #{name}")
 
-    {updated_game, updated_player} =
-      Enum.reduce_while(1..game.config.pixels_per_iteration, {game, player}, fn _i,
-                                                                                {updated_game,
-                                                                                 updated_player} ->
+    {%Game{} = game_updated, %Player{x: new_x, y: new_y} = player_updated} =
+      Enum.reduce_while(1..pixels_per_iteration, {game, player}, fn _i,
+                                                                    {updated_game, updated_player} ->
         {:ok, game, player, _diff} = move_step(updated_game, updated_player)
 
         if player.is_alive do
@@ -124,49 +123,60 @@ defmodule CurveFever.Game do
       end)
 
     canvas_diff = %{
-      color: player.color,
-      x1: player.x,
-      y1: player.y,
-      x2: updated_player.x,
-      y2: updated_player.y
+      color: color,
+      x1: x,
+      y1: y,
+      x2: new_x,
+      y2: new_y
     }
 
     Logger.info(canvas_diff: canvas_diff)
 
-    {:ok, updated_game, updated_player, canvas_diff}
+    {:ok, game_updated, player_updated, canvas_diff}
   end
 
-  defp move_step(game, player) do
-    speed = game.config.speed
-    deltaX = :math.cos(player.angle * :math.pi() / 180) * speed
-    deltaY = :math.sin(player.angle * :math.pi() / 180) * speed
+  defp move_step(
+         %Game{
+           config: %GameConfig{
+             speed: speed,
+             canvas_width: canvas_width,
+             canvas_height: canvas_height
+           }
+         } = game,
+         %Player{name: name, x: x, y: y, color: color} = player
+       ) do
+    delta_x = :math.cos(player.angle * :math.pi() / 180) * speed
+    delta_y = :math.sin(player.angle * :math.pi() / 180) * speed
 
-    current_pos_index = trunc(player.x) * game.config.canvas_width + trunc(player.y)
+    current_pos_index = trunc(x) * canvas_width + trunc(y)
 
-    new_x = player.x + deltaX
-    new_y = player.y + deltaY
+    new_x = x + delta_x
+    new_y = y + delta_y
 
     {_, x_decimal} = split_float(new_x)
     {_, y_decimal} = split_float(new_y)
-    canvas_value = [player.color, x_decimal, y_decimal]
-    canvas_diff = %{color: player.color, x1: player.x, y1: player.y, x2: new_x, y2: new_y}
+    canvas_value = [color, x_decimal, y_decimal]
+    canvas_diff = %{color: color, x1: x, y1: y, x2: new_x, y2: new_y}
 
-    res = clears_hit_test?(new_x, new_y, game.config.canvas_width, game.config.canvas_height)
+    res = clears_hit_test?(new_x, new_y, canvas_width, canvas_height)
     player = Map.put(player, :x, new_x)
     player = Map.put(player, :y, new_y)
 
-    new_pos_index = trunc(new_x) * game.config.canvas_width + trunc(new_y)
+    new_pos_index = trunc(new_x) * canvas_width + trunc(new_y)
 
     if res == false or
          (new_pos_index != current_pos_index and Enum.at(game.canvas, new_pos_index) != -1) do
-      player = Map.put(player, :is_alive, false)
-      player = Map.put(player, :isActive, false)
-      Logger.info("Player failed to clear hit test": player.name)
+      player =
+        player
+        |> Map.put(:is_alive, false)
+        |> Map.put(:is_active, false)
+
+      Logger.info("Player failed to clear hit test": name)
       {:ok, game} = update_player(game, player)
 
       if length(players_alive(game)) == 1 do
-        Logger.info("Game ends as the number of players alive is 1")
-        game = %{game | game_state: :completed}
+        Logger.info("Game #{game.id} ended as the number of players alive is 1")
+        game = %{game | status: :completed}
         {:ok, game, player, canvas_diff}
       else
         {:ok, game, player, canvas_diff}
@@ -215,15 +225,15 @@ defmodule CurveFever.Game do
     %{game | canvas: canvas}
   end
 
-  defp find_player(game, %{} = attrs, match: :any) do
-    game.players
+  defp find_player(%__MODULE__{players: players}, %{} = attrs, match: :any) do
+    players
     |> Enum.find(fn player ->
       Enum.any?(attrs, &has_equal_attribute?(player, &1))
     end)
   end
 
-  defp find_player(game, %{} = attrs) do
-    game.players
+  defp find_player(%__MODULE__{players: players}, %{} = attrs) do
+    players
     |> Enum.find(fn player ->
       Enum.all?(attrs, &has_equal_attribute?(player, &1))
     end)
@@ -238,12 +248,9 @@ defmodule CurveFever.Game do
   end
 
   defp initialize_players_state(players, config) do
-    initialized_players =
-      players
-      |> Enum.with_index()
-      |> Enum.map(fn {player, index} -> Player.initialize_state(player, config, index) end)
-
-    initialized_players
+    players
+    |> Enum.with_index()
+    |> Enum.map(fn {player, index} -> Player.initialize_state(player, config, index) end)
   end
 
   def initialize_canvas(h, w) do

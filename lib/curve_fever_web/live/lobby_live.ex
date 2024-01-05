@@ -4,12 +4,11 @@ defmodule CurveFeverWeb.LobbyLive do
   alias CurveFever.Player
   alias CurveFever.GameServer
   alias CurveFever.GameSupervisor
-  alias CurveFeverWeb.Router.Helpers, as: Routes
 
   require Logger
 
   @impl true
-  def mount(%{"player_name" => player_name} = params, session, socket) do
+  def mount(%{"player_name" => player_name} = _params, _session, socket) do
     Logger.info(lobby_live_length: Enum.count(GameServer.list_rooms()))
     Logger.info("games: #{GameServer.list_rooms()}")
 
@@ -21,7 +20,7 @@ defmodule CurveFeverWeb.LobbyLive do
     game_id = MnemonicSlugs.generate_slug(2)
     Logger.info(game_id: game_id)
 
-    {:ok, pid} = GameSupervisor.start_game(game_id)
+    {:ok, _pid} = GameSupervisor.start_game(game_id)
 
     player_name = socket.assigns.player_name
     player = Player.new(player_name)

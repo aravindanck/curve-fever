@@ -10,7 +10,7 @@ defmodule CurveFeverWeb.SigninLive do
   end
 
   @impl true
-  def handle_event("enter-lobby", %{"player_name" => player_name} = params, socket) do
+  def handle_event("enter-lobby", %{"player_name" => player_name} = _params, socket) do
     socket =
       socket
       |> push_navigate(to: ~p"/lobby?player_name=#{player_name}")

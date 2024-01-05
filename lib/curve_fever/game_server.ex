@@ -108,7 +108,7 @@ defmodule CurveFever.GameServer do
       {:ok, game} ->
         broadcast_game_updated!(game.id, %{game: game})
 
-        Process.send_after(self(), :update_canvas, game.config.initialDelay)
+        Process.send_after(self(), :update_canvas, game.config.initial_delay)
 
         Logger.info(start_game_send_pid: self())
         {:reply, {:ok, game}, %{game: game}}
@@ -123,7 +123,7 @@ defmodule CurveFever.GameServer do
     Logger.info(player_id: player_id)
 
     with {:ok, player} <- Game.get_player_by_id(state.game, player_id) do
-      if player.isAlive do
+      if player.is_alive do
         {:ok, game, player} = Game.turn(state.game, player, 1)
         {:ok, game} = Game.update_player(game, player)
         {:reply, {:ok, game, player}, %{game: game, player: player}}
@@ -138,7 +138,7 @@ defmodule CurveFever.GameServer do
     Logger.info(player_id: player_id)
 
     with {:ok, player} <- Game.get_player_by_id(state.game, player_id) do
-      if player.isAlive do
+      if player.is_alive do
         {:ok, game, player} = Game.turn(state.game, player, -1)
         {:ok, game} = Game.update_player(game, player)
         {:reply, {:ok, game, player}, %{game: game, player: player}}
@@ -156,7 +156,7 @@ defmodule CurveFever.GameServer do
   defp canvas_update(state) do
     {game, canvas_diff} =
       state.game.players
-      |> Enum.filter(fn player -> player.isAlive end)
+      |> Enum.filter(fn player -> player.is_alive end)
       |> Enum.reduce({state.game, []}, fn player, {game_acc, canvas_diff_acc} ->
         {:ok, game_acc, _player, diff} = Game.move_forward(game_acc, player)
         {game_acc, [diff] ++ canvas_diff_acc}
@@ -165,7 +165,7 @@ defmodule CurveFever.GameServer do
     broadcast_canvas_updated!(game.id, canvas_diff)
 
     if game.game_state == :running do
-      Process.send_after(self(), :update_canvas, game.config.stepFrequency)
+      Process.send_after(self(), :update_canvas, game.config.step_frequency)
     else
       broadcast_game_ended!(game.id, List.first(Game.players_alive(game)))
       {:noreply, %{game: game}}

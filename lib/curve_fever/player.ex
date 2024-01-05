@@ -12,8 +12,8 @@ defmodule CurveFever.Player do
     :angle,
     :color,
     :distance,
-    :isPlaying,
-    :isAlive,
+    :is_playing,
+    :is_alive,
     :canceled
   ]
 
@@ -26,8 +26,8 @@ defmodule CurveFever.Player do
           angle: integer(),
           color: String.t(),
           distance: integer(),
-          isPlaying: boolean(),
-          isAlive: boolean()
+          is_playing: boolean(),
+          is_alive: boolean()
         }
 
   @spec new(String.t()) :: t()
@@ -57,11 +57,11 @@ defmodule CurveFever.Player do
 
     initialized_player =
       player
-      |> Map.update!(:x, fn _ -> :rand.uniform(config.canvasHeight - 1) end)
-      |> Map.update!(:y, fn _ -> :rand.uniform(config.canvasWidth - 1) end)
+      |> Map.update!(:x, fn _ -> :rand.uniform(config.canvas_height - 1) end)
+      |> Map.update!(:y, fn _ -> :rand.uniform(config.canvas_width - 1) end)
       |> Map.update!(:color, fn _ -> color[index] end)
-      |> Map.update!(:isAlive, fn _ -> true end)
-      |> Map.update!(:isPlaying, fn _ -> true end)
+      |> Map.update!(:is_alive, fn _ -> true end)
+      |> Map.update!(:is_playing, fn _ -> true end)
       |> Map.update!(:canceled, fn _ -> false end)
       |> Map.update!(:speed, fn _ -> 1 end)
       |> Map.update!(:angle, fn _ -> :rand.uniform(360) end)

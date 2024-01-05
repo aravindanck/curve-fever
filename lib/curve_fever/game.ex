@@ -4,8 +4,7 @@ defmodule CurveFever.Game do
   game state
   """
 
-  alias CurveFever.Player
-  alias CurveFever.GameConfig
+  alias CurveFever.{Game, Player, GameConfig}
 
   require Logger
 
@@ -38,9 +37,7 @@ defmodule CurveFever.Game do
   Adds a new player to the game
   """
   @spec add_player(t(), Player.t()) :: {:ok, t()} | {:error, :name_taken}
-  def add_player(game, player) do
-    %{name: name} = player
-
+  def add_player(game, %Player{name: name} = player) do
     case find_player(game, %{name: {:case_insensitive, name}}, match: :any) do
       nil ->
         {:ok, Map.update!(game, :players, &[player | &1])}
@@ -77,30 +74,34 @@ defmodule CurveFever.Game do
   Returns a full list of players in the game
   """
   @spec list_players(t()) :: list(Player.t())
-  def list_players(game), do: game.players
+  def list_players(%Game{players: [_ | _] = players}), do: players
+  def list_players(_), do: []
 
   @doc """
   Start game
   """
   @spec start_game(t()) :: {:ok, t()} | {:error, :insufficient_players}
-  def start_game(game) do
-    {:ok, config} = Map.fetch(game, :config)
+  def start_game(
+        %Game{
+          players: players,
+          config: %GameConfig{canvas_width: canvas_width, canvas_height: canvas_height} = config
+        } = game
+      )
+      when length(players) > 1 do
+    canvas = initialize_canvas(canvas_height, canvas_width)
+    players = initialize_players_state(players, config)
 
-    if length(game.players) <= 1 do
-      {:error, :insufficient_players}
-    else
-      canvas = initialize_canvas(config.canvasHeight, config.canvasWidth)
-      players = initialize_players_state(game.players, config)
+    game =
+      game
+      |> Map.put(:game_state, :running)
+      |> Map.put(:canvas, canvas)
+      |> Map.put(:players, players)
 
-      game =
-        game
-        |> Map.put(:game_state, :running)
-        |> Map.put(:canvas, canvas)
-        |> Map.put(:players, players)
-
-      {:ok, game}
-    end
+    {:ok, game}
   end
+
+  def start_game(_game),
+    do: {:error, :insufficient_players}
 
   def move_forward(game, player) do
     Logger.info(
@@ -110,12 +111,12 @@ defmodule CurveFever.Game do
     Logger.info(invoked_by: self(), for_player: player.name)
 
     {updated_game, updated_player} =
-      Enum.reduce_while(1..game.config.pixelsPerIteration, {game, player}, fn _i,
-                                                                              {updated_game,
-                                                                               updated_player} ->
+      Enum.reduce_while(1..game.config.pixels_per_iteration, {game, player}, fn _i,
+                                                                                {updated_game,
+                                                                                 updated_player} ->
         {:ok, game, player, _diff} = move_step(updated_game, updated_player)
 
-        if player.isAlive do
+        if player.is_alive do
           {:cont, {game, player}}
         else
           {:halt, {game, player}}
@@ -140,7 +141,7 @@ defmodule CurveFever.Game do
     deltaX = :math.cos(player.angle * :math.pi() / 180) * speed
     deltaY = :math.sin(player.angle * :math.pi() / 180) * speed
 
-    current_pos_index = trunc(player.x) * game.config.canvasWidth + trunc(player.y)
+    current_pos_index = trunc(player.x) * game.config.canvas_width + trunc(player.y)
 
     new_x = player.x + deltaX
     new_y = player.y + deltaY
@@ -150,15 +151,15 @@ defmodule CurveFever.Game do
     canvas_value = [player.color, x_decimal, y_decimal]
     canvas_diff = %{color: player.color, x1: player.x, y1: player.y, x2: new_x, y2: new_y}
 
-    res = clears_hit_test?(new_x, new_y, game.config.canvasWidth, game.config.canvasHeight)
+    res = clears_hit_test?(new_x, new_y, game.config.canvas_width, game.config.canvas_height)
     player = Map.put(player, :x, new_x)
     player = Map.put(player, :y, new_y)
 
-    new_pos_index = trunc(new_x) * game.config.canvasWidth + trunc(new_y)
+    new_pos_index = trunc(new_x) * game.config.canvas_width + trunc(new_y)
 
     if res == false or
          (new_pos_index != current_pos_index and Enum.at(game.canvas, new_pos_index) != -1) do
-      player = Map.put(player, :isAlive, false)
+      player = Map.put(player, :is_alive, false)
       player = Map.put(player, :isActive, false)
       Logger.info("Player failed to clear hit test": player.name)
       {:ok, game} = update_player(game, player)
@@ -184,11 +185,11 @@ defmodule CurveFever.Game do
 
   def players_alive(game) do
     list_players(game)
-    |> Enum.filter(fn player -> player.isPlaying and player.isAlive end)
+    |> Enum.filter(fn player -> player.is_playing and player.is_alive end)
   end
 
-  defp clears_hit_test?(x, y, canvasWidth, canvasHeight) do
-    if x < 0 or y < 0 or x >= canvasHeight or y >= canvasWidth do
+  defp clears_hit_test?(x, y, canvas_width, canvas_height) do
+    if x < 0 or y < 0 or x >= canvas_height or y >= canvas_width do
       false
     else
       true
@@ -196,7 +197,7 @@ defmodule CurveFever.Game do
   end
 
   def turn(game, player, direction) do
-    angle = player.angle + game.config.maximumChangeOfAngle * direction
+    angle = player.angle + game.config.maximum_change_of_angle * direction
 
     angle = rem(angle, 360)
 

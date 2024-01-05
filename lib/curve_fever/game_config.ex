@@ -3,25 +3,25 @@ defmodule CurveFever.GameConfig do
   Represents a CurveFever Game Configuration
   """
 
-  defstruct canvasWidth: 800,
-            canvasHeight: 700,
-            lineWidth: 3,
+  defstruct canvas_width: 800,
+            canvas_height: 700,
+            line_width: 3,
             speed: 1,
             # angle change on direction change key press
-            maximumChangeOfAngle: 5,
-            initialDelay: 5000,
-            stepFrequency: 50,
-            pixelsPerIteration: 2
+            maximum_change_of_angle: 5,
+            initial_delay: 5000,
+            step_frequency: 50,
+            pixels_per_iteration: 2
 
   @type t :: %__MODULE__{
-          canvasWidth: pos_integer(),
-          canvasHeight: pos_integer(),
-          lineWidth: pos_integer(),
+          canvas_width: pos_integer(),
+          canvas_height: pos_integer(),
+          line_width: pos_integer(),
           speed: float(),
-          maximumChangeOfAngle: pos_integer(),
-          initialDelay: pos_integer(),
-          stepFrequency: pos_integer(),
-          pixelsPerIteration: pos_integer()
+          maximum_change_of_angle: pos_integer(),
+          initial_delay: pos_integer(),
+          step_frequency: pos_integer(),
+          pixels_per_iteration: pos_integer()
         }
 
   @spec new() :: t()

@@ -5,7 +5,6 @@ defmodule CurveFeverWeb.GameLive do
 
   use CurveFeverWeb, :live_view
   alias CurveFever.GameServer
-  # alias CurveFeverWeb.Presence
 
   require Logger
 
@@ -14,7 +13,6 @@ defmodule CurveFeverWeb.GameLive do
     socket =
       with {:ok, game} <- GameServer.get_game(game_id),
            {:ok, player} <- GameServer.get_player_by_id(game_id, player_id),
-           #  {:ok, _} <- Presence.track(self(), game_id, player_id, %{}),
            :ok <- Phoenix.PubSub.subscribe(CurveFever.PubSub, game_id) do
         assign(socket, game: game, player: player, canvas_diff: [])
       else
@@ -32,7 +30,14 @@ defmodule CurveFeverWeb.GameLive do
 
     case GameServer.start_game(game_id(socket)) do
       {:ok, game} ->
-        # assign(socket, game: game)
+        player_id = socket |> player_id()
+
+        socket =
+          socket
+          |> assign(game: game)
+          # Navigating to the game page to refresh caller's canvas. For other players, :refresh event is broadcasted
+          |> push_navigate(to: ~p"/game?player_id=#{player_id}&game_id=#{game.id}")
+
         {:reply, %{game: game}, socket}
 
       {:error, :insufficient_players} ->
@@ -45,7 +50,6 @@ defmodule CurveFeverWeb.GameLive do
   end
 
   def handle_event("key_press", %{"key" => "ArrowLeft"}, socket) do
-    Logger.info("Arrow Left pressed")
     game_id = socket |> game_id()
     player_id = socket |> player_id()
 
@@ -55,7 +59,6 @@ defmodule CurveFeverWeb.GameLive do
   end
 
   def handle_event("key_press", %{"key" => "ArrowRight"}, socket) do
-    Logger.info("Arrow Right pressed")
     game_id = socket |> game_id()
     player_id = socket |> player_id()
 
@@ -64,8 +67,7 @@ defmodule CurveFeverWeb.GameLive do
     {:noreply, socket}
   end
 
-  def handle_event("key_press", keypressed, socket) do
-    Logger.info("Invalid key", keypressed)
+  def handle_event("key_press", _keypressed, socket) do
     {:noreply, socket}
   end
 
@@ -83,36 +85,34 @@ defmodule CurveFeverWeb.GameLive do
 
   @impl true
   def handle_info(%{event: :game_updated, payload: state}, socket) do
-    Logger.info("Game Updated(:game_updated) broadcast caught")
     Logger.info(game_started_signal_received_by: socket.assigns.player.name)
     {:noreply, assign(socket, game: state.game)}
   end
 
   @impl true
   def handle_info(%{event: :canvas_updated, payload: canvas_diff}, socket) do
-    Logger.info(canvas_update_event_received_by: socket.assigns.player.name)
+    # Logger.info(canvas_update_event_received_by: socket.assigns.player.name)
     {:noreply, assign(socket, canvas_diff: canvas_diff)}
   end
 
-  def handle_info(%{event: "presence_diff", payload: payload}, socket) do
-    %{game: game} = socket.assigns
+  @impl true
+  def handle_info(%{event: :refresh}, socket) do
+    Logger.info(refresh_event_received_by: socket.assigns.player.name)
+    game_id = socket |> game_id()
+    player_id = socket |> player_id()
 
-    # online_players =
-    #   socket
-    #   |> game_id()
-    #   |> online_players()
+    socket =
+      socket
+      |> push_navigate(to: ~p"/game?player_id=#{player_id}&game_id=#{game_id}")
 
-    Logger.info(payload: payload)
-
-    # game = %{game | online_players: online_players}
-
-    {:noreply, assign(socket, game: game)}
+    {:noreply, socket}
   end
 
   def handle_info(%{event: :game_ended, payload: winner}, socket) do
     socket =
       socket
       |> put_temporary_flash(:info, "Player #{winner.name} won!")
+      |> assign(:game, %{socket.assigns.game | status: :completed})
 
     {:noreply, socket}
   end
@@ -130,13 +130,6 @@ defmodule CurveFeverWeb.GameLive do
   defp player_id(socket) do
     socket.assigns.player.id
   end
-
-  # defp online_players(game_id) do
-  #   Logger.info(Presence.list(game_id))
-  #   game_id
-  #   |> Presence.list()
-  #   |> Enum.map(fn {_k, %{player: player}} -> player end)
-  # end
 
   defp put_temporary_flash(socket, level, message) do
     :timer.send_after(:timer.seconds(3), {:clear_flash, level})

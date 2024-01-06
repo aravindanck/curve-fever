@@ -107,8 +107,7 @@ defmodule CurveFever.Game do
         %Game{config: %GameConfig{pixels_per_iteration: pixels_per_iteration}} = game,
         %Player{name: name, x: x, y: y, color: color} = player
       ) do
-
-    Logger.info("Moving forward , invoked_by: #{inspect(self())}, for_player: #{name}")
+    # Logger.info("Moving forward , invoked_by: #{inspect(self())}, for_player: #{name}")
 
     {%Game{} = game_updated, %Player{x: new_x, y: new_y} = player_updated} =
       Enum.reduce_while(1..pixels_per_iteration, {game, player}, fn _i,
@@ -130,7 +129,7 @@ defmodule CurveFever.Game do
       y2: new_y
     }
 
-    Logger.info(canvas_diff: canvas_diff)
+    # Logger.info(canvas_diff: canvas_diff)
 
     {:ok, game_updated, player_updated, canvas_diff}
   end
@@ -171,7 +170,7 @@ defmodule CurveFever.Game do
         |> Map.put(:is_alive, false)
         |> Map.put(:is_active, false)
 
-      Logger.info("Player failed to clear hit test": name)
+      # Logger.info("Player failed to clear hit test": name)
       {:ok, game} = update_player(game, player)
 
       if length(players_alive(game)) == 1 do

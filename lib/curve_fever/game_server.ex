@@ -32,6 +32,7 @@ defmodule CurveFever.GameServer do
     call_by_name(game_id, {:turn_right, player_id})
   end
 
+  @spec start_game(String.t()) :: :ok
   def start_game(game_id) do
     call_by_name(game_id, :start_game)
   end
@@ -106,9 +107,10 @@ defmodule CurveFever.GameServer do
   def handle_call(:start_game, _from, %{game: %Game{} = game} = state) do
     case Game.start_game(game) do
       {:ok, %Game{config: %GameConfig{initial_delay: initial_delay}} = game} ->
-        broadcast_game_updated!(game.id, %{game: game})
-
-        Process.send_after(self(), :update_canvas, initial_delay)
+        # Following broadcast is used to clear canvas while restarting game(Play again)
+        broadcast_game_refresh!(game.id)
+        broadcast_game_updated!(game.id, game)
+        Process.send_after(self(), :tick, initial_delay)
 
         Logger.info(start_game_send_pid: self())
         {:reply, {:ok, game}, %{game: game}}
@@ -124,7 +126,7 @@ defmodule CurveFever.GameServer do
         _from,
         %{game: %Game{} = game} = state
       ) do
-    Logger.info(player_id: player_id)
+    Logger.info("Turn left for player_id: #{player_id}")
 
     with {:ok, player} <- Game.get_player_by_id(game, player_id),
          true <- player.is_alive,
@@ -143,7 +145,7 @@ defmodule CurveFever.GameServer do
         _from,
         %{game: %Game{} = game} = state
       ) do
-    Logger.info(player_id: player_id)
+    Logger.info("Turn right for player_id: #{player_id}")
 
     with {:ok, player} <- Game.get_player_by_id(game, player_id),
          true <- player.is_alive,
@@ -157,18 +159,34 @@ defmodule CurveFever.GameServer do
   end
 
   @impl true
-  def handle_info(:update_canvas, state) do
-    canvas_update(state)
+  def handle_info(:tick, state) do
+    task = Task.async(fn -> tick(state) end)
+
+    %{
+      game:
+        %Game{
+          id: game_id,
+          status: game_status,
+          config: %GameConfig{step_frequency: step_frequency}
+        } = game
+    } = state = Task.await(task)
+
+    if game_status == :running do
+      Process.send_after(self(), :tick, step_frequency)
+    else
+      Logger.info("Game #{game_id} ended")
+      broadcast_game_ended!(game_id, List.first(Game.players_alive(game)))
+    end
+
+    {:noreply, state}
   end
 
-  defp canvas_update(
+  defp tick(
          %{
            game:
              %Game{
                id: game_id,
-               status: game_status,
-               players: players,
-               config: %GameConfig{step_frequency: step_frequency}
+               players: players
              } = game
          } = _state
        ) do
@@ -182,13 +200,7 @@ defmodule CurveFever.GameServer do
 
     broadcast_canvas_updated!(game_id, canvas_diff)
 
-    if game_status == :running do
-      Process.send_after(self(), :update_canvas, step_frequency)
-    else
-      broadcast_game_ended!(game_id, List.first(Game.players_alive(game)))
-    end
-
-    {:noreply, %{game: game}}
+    %{game: game}
   end
 
   @spec broadcast!(String.t(), atom(), map()) :: :ok
@@ -220,13 +232,15 @@ defmodule CurveFever.GameServer do
     broadcast!(game_id, :game_updated, %{:game => game})
   end
 
+  defp broadcast_game_refresh!(game_id) do
+    broadcast!(game_id, :refresh)
+  end
+
   defp broadcast_canvas_updated!(game_id, canvas_diff) do
-    Logger.info("Canvas updated broadcast")
     broadcast!(game_id, :canvas_updated, canvas_diff)
   end
 
   defp broadcast_game_ended!(game_id, winner) do
-    Logger.info("Game ended")
     broadcast!(game_id, :game_ended, winner)
   end
 

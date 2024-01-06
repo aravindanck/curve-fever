@@ -66,8 +66,6 @@ Hooks.canvas = {
     setCanvas();
   },
   updated() {
-    console.log("Updated");
-
     const c = document.getElementById("game-canvas");
     const ctx = c.getContext("2d");
     
@@ -85,16 +83,6 @@ Hooks.canvas = {
     });
   }
 }
-
-Hooks.gamestate ={
-  mounted(){
-    console.log("Game state mounted")
-  },
-  updated() {
-    console.log("Game State Changed")
-    window.location.reload()
-  }
-} 
 // End of User defined JS
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")

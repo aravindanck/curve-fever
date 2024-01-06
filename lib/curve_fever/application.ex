@@ -12,7 +12,7 @@ defmodule CurveFever.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: CurveFever.PubSub},
       {Registry, keys: :unique, name: CurveFever.GameRegistry},
-      CurveFeverWeb.Presence,
+      # CurveFeverWeb.Presence,
       # Start the Endpoint (http/https)
       CurveFeverWeb.Endpoint,
       CurveFever.GameSupervisor

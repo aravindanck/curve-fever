@@ -7,13 +7,7 @@
       <button phx-click="start_game" id="start-button">Start</button>
     </div>
 
-    <div
-      :if={@game.status != :waiting_to_start}
-      id="game-state"
-      data-value={@game.status}
-      phx-change="update"
-      phx-hook="gamestate"
-    >
+    <div :if={@game.status != :waiting_to_start} data-value={@game.status}>
       <canvas
         id="game-canvas"
         data-value={Jason.encode!(@game.canvas)}
@@ -22,7 +16,6 @@
         phx-window-keydown="key_press"
         phx-change="ignore"
       >
-        %>
       </canvas>
       <div
         id="canvas-diff"
@@ -36,7 +29,7 @@
     <div class="column" id="players-list">
       <div class="container">
         <div style="margin: 20px 0">
-          <div>Welcome <b style={"color: #{@player.color}"}><%= @player.name %></b></div>
+          <div>Welcome <b style={"color: #{@player.color}"}><%= @player.name %></b>!</div>
           <div>You're in Game Room: <b><%= @game.id %></b></div>
         </div>
 

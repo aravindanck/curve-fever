@@ -9,7 +9,7 @@ defmodule CurveFever.GameConfig do
             speed: 1,
             # angle change on direction change key press
             maximum_change_of_angle: 5,
-            initial_delay: 5000,
+            initial_delay: 3000,
             step_frequency: 50,
             pixels_per_iteration: 2
 

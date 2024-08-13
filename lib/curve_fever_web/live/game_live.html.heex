@@ -1,13 +1,13 @@
 <section class="container">
-  <h1>Curve Fever</h1>
+  <.header>Curve Fever</.header>
 </section>
 <div id="game-container" phx-change="update">
   <div class="row">
     <div :if={@game.status == :waiting_to_start} class="column">
-      <button phx-click="start_game" id="start-button">Start</button>
+      <.button phx-click="start_game" id="start-button">Start</.button>
     </div>
 
-    <div :if={@game.status != :waiting_to_start} data-value={@game.status}>
+    <div :if={@game.status != :waiting_to_start} data-value={@game.status} style="margin-left: 10px">
       <canvas
         id="game-canvas"
         data-value={Jason.encode!(@game.canvas)}

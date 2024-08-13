@@ -105,7 +105,7 @@ defmodule CurveFever.Game do
 
   def move_forward(
         %Game{config: %GameConfig{pixels_per_iteration: pixels_per_iteration}} = game,
-        %Player{name: name, x: x, y: y, color: color} = player
+        %Player{name: _name, x: x, y: y, color: color} = player
       ) do
     # Logger.info("Moving forward , invoked_by: #{inspect(self())}, for_player: #{name}")
 
@@ -142,7 +142,7 @@ defmodule CurveFever.Game do
              canvas_height: canvas_height
            }
          } = game,
-         %Player{name: name, x: x, y: y, color: color} = player
+         %Player{name: _name, x: x, y: y, color: color} = player
        ) do
     delta_x = :math.cos(player.angle * :math.pi() / 180) * speed
     delta_y = :math.sin(player.angle * :math.pi() / 180) * speed

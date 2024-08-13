@@ -22,14 +22,14 @@ defmodule CurveFeverWeb.SigninLive do
   def render(assigns) do
     ~H"""
     <section class="container">
-      <h1>Curve Fever</h1>
+      <.header>Curve Fever</.header>
     </section>
     <div id="signin-container" class="container row">
       <div class="column">
         <.simple_form for={@form} id="signin_form" phx-submit="enter-lobby">
           <.input name={:player_name} value="" placeholder="Player Name" />
           <:actions>
-            <.button>Enter</.button>
+            <.button class="bg-beige">Enter</.button>
           </:actions>
         </.simple_form>
       </div>
